@@ -4,7 +4,7 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
 from .models import MissionUser
-from .serializers import RegisterSerializer, LoginSerializer, RefreshSerializer
+from .serializers import RegisterSerializer, LoginSerializer
 from .utils import generate_tokens
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.serializers import TokenRefreshSerializer
@@ -43,6 +43,9 @@ class Refresh(APIView):
         if (not serializer.is_valid()):
             return Response(serializer.errors, status=400)
         return Response(serializer.validated_data)
+
+class EditSecurity(APIView):
+    pass
 
 class GeneratePasswordRequest(APIView):
     pass

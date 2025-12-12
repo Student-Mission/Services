@@ -3,7 +3,7 @@ from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from .managers import MissionUserManager
 import uuid
 
-class MissionUser(AbstractBaseUser, PermissionsMixin):
+class MissionUser(AbstractBaseUser):
     USER_TYPES = (
         ('student', 'Student'),
         ('company', 'Company'),
