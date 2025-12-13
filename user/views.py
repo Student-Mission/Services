@@ -4,12 +4,11 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
 from .models import MissionUser
-from .serializers import RegisterSerializer, LoginSerializer, SecuritySerializer
+from .serializers import RegisterSerializer, LoginSerializer
 from .utils import generate_tokens
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.serializers import TokenRefreshSerializer
 from rest_framework_simplejwt.views import TokenRefreshView
-from rest_framework.permissions import IsAuthenticated
 
 class Login(APIView):
     permission_classes = [AllowAny]
@@ -46,25 +45,7 @@ class Refresh(APIView):
         return Response(serializer.validated_data)
 
 class EditSecurity(APIView):
-    """
-    Docstring for EditSecurity
-    """
-    permission_classes = [IsAuthenticated]
-
-    def put(self, request: Request):
-        serializer = SecuritySerializer(
-            data=request.data,
-            instance=request.user,
-            context={
-                'request': request
-            }
-        )
-        if (not serializer.is_valid()):
-            return Response(serializer.errors, status=400)
-        serializer.save()
-        return Response({
-            'msg': 'security successfully updated'
-        })
+    pass
 
 class GeneratePasswordRequest(APIView):
     pass

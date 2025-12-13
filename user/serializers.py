@@ -79,29 +79,3 @@ class LoginSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({'detail': 'Invalid credentials'})
         data['user'] = user
         return data
-
-class SecuritySerializer(serializers.ModelSerializer):
-    old_password = serializers.CharField(write_only=True)
-    new_password = serializers.CharField(write_only=True, min_length=7)
-
-    class Meta:
-        model = MissionUser
-        fields = ['old_password', 'new_password']
-
-    def validate(self, data: dict):
-        data = super().validate(data)
-        old_password = data.get('old_password')
-        new_password = data.get('new_password')
-        user = self.context.get('request').user
-        if (user.check_password(old_password) == False):
-            raise serializers.ValidationError({'detail': 'bad credentials'})
-        if (old_password == new_password):
-            raise serializers.ValidationError({'detail': 'passwords must not be the same'})
-        return data
-    
-    def update(self, instance: MissionUser, validated_data):
-        new_password = validated_data.get('new_password')
-        # user = self.context.get('request').user
-        instance.set_password(new_password)
-        instance.save()
-        return instance

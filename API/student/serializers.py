@@ -2,7 +2,8 @@ from rest_framework import serializers
 from company.models import Mission, Company
 from user_auth.models import MissionUser
 from mission_admin.models import Skill
-from .models import SkillWrapper, StudentKYC
+from .models import SkillWrapper, StudentKYC, SkillTest
+from .utils import compute_skill_rate
 
 class MissionCardSerializer(serializers.ModelSerializer):
 
@@ -130,6 +131,7 @@ class AddSkillSerializer(serializers.ModelSerializer):
         fields = ['name']
     
     def validate(self, data: dict):
+        data = super().validate(data)
         name = data.get('name', None)
         
         # Check field validity
@@ -187,3 +189,21 @@ class StudentProofSerializer(serializers.ModelSerializer):
             student=user.student
         )
         return proof
+
+class MakeSkillTestSerializer(serializers.Serializer):
+    skill_name = serializers.CharField()
+
+class SkillTestSummarySerializer(serializers.ModelSerializer):
+
+    skill = serializers.SerializerMethodField()
+    class Meta:
+        model = SkillTest
+        fields = ['rate', 'ended', 'created_at', 'updated_at', 'skill']
+    
+    def get_skill(self, obj: SkillTest):
+        return {
+            'name': obj.skill.skill.name,
+            'mission_rate': obj.skill.mission_rate,
+            'test_rate': obj.skill.test_rate,
+            'rate': compute_skill_rate(obj.skill.mission_rate, obj.skill.test_rate)
+        }

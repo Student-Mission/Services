@@ -54,4 +54,6 @@ class SkillTest(models.Model):
 
     created_at = models.DateField(auto_now_add=True)
     updated_at = models.DateField(auto_now=True)
+    expires_at = models.DateTimeField(null=True, blank=True)
+    
     skill = models.ForeignKey(SkillWrapper, on_delete=models.CASCADE, related_name="tests")

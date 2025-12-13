@@ -34,6 +34,8 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+# AI
+AI_KEY = env("AI_KEY")
 
 # Application definition
 
