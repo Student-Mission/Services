@@ -1,0 +1,17 @@
+BACKEND:
+    ☐ Main API and Media API dispatching
+    ☐ Include skills resources
+    ☐ Include prices
+    COMPANY:
+        ☐ Database schema should includes:
+            - Missions documents
+            - Link for delivery
+            - A way to count companies projects by weeks
+    
+    STUDENT:
+        ☐ Separate test rate to mission rate
+
+FRONTEND:
+    STUDENT:
+        ☐ Design interface
+        

@@ -1,0 +1,48 @@
+$poppins-variants: (
+    "thin": "Poppins thin",
+    "extra-light": "Poppins Extra light",
+    "light": "Poppins light",
+    "medium": "Poppins medium",
+    "semibold": "Poppins semibold",
+    "bold": "Poppins bold",
+    "extra-bold": "Poppins Extra bold"
+);
+
+$inter-variants: (
+    "thin": "Inter thin",
+    "extra-light": "Inter Extra light",
+    "light": "Inter light",
+    "medium": "Inter medium",
+    "semibold": "Inter semibold",
+    "bold": "Inter bold",
+    "extra-bold": "Inter Extra bold"
+);
+
+$roboto-variants: (
+    "thin": "Roboto thin",
+    "extra-light": "Roboto Extra light",
+    "light": "Roboto light",
+    "medium": "Roboto medium",
+    "semibold": "Roboto semibold",
+    "bold": "Roboto bold",
+    "extra-bold": "Roboto Extra bold"
+);
+
+
+@each $name, $variant in $poppins-variants {
+    .poppins-#{$name} {
+        font-family: $variant, sans-serif !important;
+    }
+}
+
+@each $name, $variant in $inter-variants {
+    .inter-#{$name} {
+        font-family: $variant, sans-serif !important;
+    }
+}
+
+@each $name, $variant in $roboto-variants {
+    .roboto-#{$name} {
+        font-family: $variant, sans-serif !important;
+    }
+}

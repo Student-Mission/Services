@@ -1,0 +1,135 @@
+/* Poppins */
+@font-face {
+    font-family: 'Poppins';
+    src: url("../assets/fonts/Poppins/Poppins-Regular.ttf"), format('truetype');
+}
+
+@font-face {
+    font-family: 'Poppins thin';
+    src: url('../assets/fonts/Poppins/Poppins-Thin.ttf'), format('truetype');
+}
+
+@font-face {
+    font-family: 'Poppins Extra light';
+    src: url('../assets/fonts/Poppins/Poppins-ExtraLight.ttf'), format('truetype');
+}
+
+@font-face {
+    font-family: 'Poppins light';
+    src: url('../assets/fonts/Poppins/Poppins-Light.ttf'), format('truetype');
+}
+
+@font-face {
+    font-family: 'Poppins medium';
+    src: url('../assets//fonts/Poppins/Poppins-Medium.ttf'), format('truetype');
+}
+
+@font-face {
+    font-family: 'Poppins semibold';
+    src: url('../assets/fonts/Poppins/Poppins-SemiBold.ttf'), format('truetype');
+}
+
+@font-face {
+    font-family: 'Poppins bold';
+    src: url('../assets/fonts/Poppins/Poppins-Bold.ttf'), format('truetype');
+}
+
+@font-face {
+    font-family: 'Poppins Extra bold';
+    src: url('../assets/fonts/Poppins/Poppins-ExtraBold.ttf'), format('truetype');
+}
+
+.poppins {
+    font-family: 'Poppins' !important;
+}
+
+/* Inter */
+
+@font-face {
+    font-family: 'Inter';
+    src: url('../assets/fonts/Inter/static/Inter_28pt-Regular.ttf'), format('truetype');
+}
+
+@font-face {
+    font-family: 'Inter thin';
+    src: url('../assets/fonts/Inter/static/Inter_28pt-Thin.ttf'), format('truetype');
+}
+
+@font-face {
+    font-family: 'Inter Extra light';
+    src: url('../assets/fonts/Inter/static/Inter_28pt-ExtraLight.ttf'), format('truetype');
+}
+
+@font-face {
+    font-family: 'Inter light';
+    src: url('../assets/fonts/Inter/static/Inter_28pt-Light.ttf'), format('truetype');
+}
+
+@font-face {
+    font-family: 'Inter medium';
+    src: url('../assets/fonts/Inter/static/Inter_28pt-Medium.ttf'), format('truetype');
+}
+
+@font-face {
+    font-family: 'Inter semibold';
+    src: url('../assets/fonts/Inter/static/Inter_28pt-SemiBold.ttf'), format('truetype');
+}
+
+@font-face {
+    font-family: 'Inter bold';
+    src: url('../assets/fonts/Inter/static/Inter_28pt-Bold.ttf'), format('truetype');
+}
+
+@font-face {
+    font-family: 'Inter Extra bold';
+    src: url('../assets/fonts/Inter/static/Inter_28pt-ExtraBold.ttf'), format('truetype');
+}
+
+.inter {
+    font-family: 'Inter' !important;
+}
+
+/* Roboto */
+@font-face {
+    font-family: 'Roboto';
+    src: url('../assets/fonts/Roboto/static/Roboto-Regular.ttf'), format('truetype');
+}
+
+@font-face {
+    font-family: 'Roboto thin';
+    src: url('../assets/fonts/Roboto/static/Roboto-Thin.ttf'), format('truetype');
+}
+
+@font-face {
+    font-family: 'Roboto Extra light';
+    src: url('../assets/fonts/Roboto/static/Roboto-ExtraLight.ttf'), format('truetype');
+}
+
+@font-face {
+    font-family: 'Roboto light';
+    src: url('../assets/fonts/Roboto/static/Roboto-Light.ttf'), format('truetype');
+}
+
+@font-face {
+    font-family: 'Roboto medium';
+    src: url('../assets/fonts/Roboto/static/Roboto-Medium.ttf'), format('truetype');
+}
+
+@font-face {
+    font-family: 'Roboto semibold';
+    src: url('../assets/fonts/Roboto/static/Roboto-SemiBold.ttf'), format('truetype');
+}
+
+@font-face {
+    font-family: 'Roboto bold';
+    src: url('../assets/fonts/Roboto/static/Roboto-Bold.ttf'), format('truetype');
+}
+
+@font-face {
+    font-family: 'Roboto Extra bold';
+    src: url('../assets/fonts/Roboto/static/Roboto-ExtraBold.ttf'), format('truetype');
+}
+
+.roboto {
+    font-family: 'Roboto' !important;
+}

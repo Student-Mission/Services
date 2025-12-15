@@ -1,0 +1,26 @@
+$site-colors: (
+    'blue-main': #01406c,
+    'blue-focus': #011524,
+    'sky': #00aabc,
+    'sky-dark': #02616b,
+    'green': #03d693,
+    'gray-main': #707070
+);
+
+@each $name, $color in $site-colors {
+    .text-#{$name} {
+        color: $color !important;
+    }
+}
+
+@each $name, $color in $site-colors {
+    .bg-#{$name} {
+        background-color: $color !important;
+    }
+}
+
+@each $name, $color in $site-colors {
+    .border-#{$name} {
+        border-color: $color !important;
+    }
+}

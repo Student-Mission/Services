@@ -1,0 +1,94 @@
+{
+  "questions": [
+    {
+      "title": "Quelle est la façon correcte de déclarer une variable en Python ?",
+      "choices": [
+        {"text": "int var = 5;", "is_correct": false},
+        {"text": "var = 5", "is_correct": true},
+        {"text": "var:int = 5", "is_correct": false},
+        {"text": "let var = 5", "is_correct": false}
+      ]
+    },
+    {
+      "title": "Quel est le résultat de l'expression '5' + 5 en Python ?",
+      "choices": [
+        {"text": "Erreur de type", "is_correct": true},
+        {"text": "10", "is_correct": false},
+        {"text": "'55'", "is_correct": false},
+        {"text": "55", "is_correct": false}
+      ]
+    },
+    {
+      "title": "Comment définir une fonction en Python ?",
+      "choices": [
+        {"text": "function nom_fonction():", "is_correct": false},
+        {"text": "def nom_fonction():", "is_correct": true},
+        {"text": "nom_fonction():", "is_correct": false},
+        {"text": "void nom_fonction():", "is_correct": false}
+      ]
+    },
+    {
+      "title": "Qu'est-ce que la liste est en Python ?",
+      "choices": [
+        {"text": "Un type de variable pour stocker des nombres", "is_correct": false},
+        {"text": "Un type de variable pour stocker des chaînes de caractères", "is_correct": false},
+        {"text": "Un type de variable pour stocker une collection d'éléments", "is_correct": true},
+        {"text": "Un type de variable pour stocker des booléens", "is_correct": false}
+      ]
+    },
+    {
+      "title": "Quelle est la méthode pour ajouter un élément à la fin d'une liste en Python ?",
+      "choices": [
+        {"text": "append()", "is_correct": true},
+        {"text": "add()", "is_correct": false},
+        {"text": "push()", "is_correct": false},
+        {"text": "insert()", "is_correct": false}
+      ]
+    },
+    {
+      "title": "Qu'est-ce que la indentation en Python ?",
+      "choices": [
+        {"text": "Des espaces ou des tabulations pour structurer le code", "is_correct": true},
+        {"text": "Des espaces pour séparer les lignes de code", "is_correct": false},
+        {"text": "Des tabulations pour structurer le code", "is_correct": false},
+        {"text": "Des espaces ou des tabulations pour commentaires", "is_correct": false}
+      ]
+    },
+    {
+      "title": "Comment ouvrir un fichier en mode lecture en Python ?",
+      "choices": [
+        {"text": "open('fichier.txt')", "is_correct": false},
+        {"text": "open('fichier.txt', 'r')", "is_correct": true},
+        {"text": "open('fichier.txt', 'w')", "is_correct": false},
+        {"text": "open('fichier.txt', 'a')", "is_correct": false}
+      ]
+    },
+    {
+      "title": "Qu'est-ce qu'une exception en Python ?",
+      "choices": [
+        {"text": "Un type d'erreur qui se produit lors de l'exécution du code", "is_correct": true},
+        {"text": "Un type de variable", "is_correct": false},
+        {"text": "Un type de fonction", "is_correct": false},
+        {"text": "Un type de boucle", "is_correct": false}
+      ]
+    },
+    {
+      "title": "Comment importer un module en Python ?",
+      "choices": [
+        {"text": "include 'module.py'", "is_correct": false},
+        {"text": "import module", "is_correct": true},
+        {"text": "require 'module'", "is_correct": false},
+        {"text": "load 'module'", "is_correct": false}
+      ]
+    },
+    {
+      "title": "Quelle est la classe de base pour créer une exception personnalisée en Python ?",
+      "choices": [
+        {"text": "Exception", "is_correct": true},
+        {"text": "Error", "is_correct": false},
+        {"text": "ExceptionCustom", "is_correct": false},
+        {"text": "CustomException", "is_correct": false}
+      ]
+    }
+  ]
+}
