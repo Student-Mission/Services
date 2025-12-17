@@ -11,8 +11,8 @@ from django.db.models import Q
 from django.utils import timezone
 from datetime import datetime
 from .utils import get_applications_rate, get_missions_per_month
-from .serializers import CompanyUserProfileSerializer, AccountSerializer
-
+from .serializers import CompanyUserProfileSerializer, AccountSerializer, CompanyKYCSerializer
+from rest_framework.parsers import FormParser, MultiPartParser
 class Dashboard(APIView):
     permission_classes = [IsAuthenticated, IsCompany]
 
@@ -158,11 +158,47 @@ class CompanyProfile(APIView):
             'msg': 'account successfully updated'
         })
 
-class AddCompanyKYC(APIView):
+class SetCompanyKYC(APIView):
     """
     Docstring for AddCompanyKYC
     """
     permission_classes = [IsAuthenticated, IsCompany]
+    parser_classes = [MultiPartParser, FormParser]
 
     def post(self, request: Request):
-        pass
+        user = request.user
+        if (hasattr(user.company, 'kyc')):
+            return Response({
+                'detail': ['kyc already set']
+            }, status=400)
+        serializer = CompanyKYCSerializer(data=request.data, context={
+            'user': user
+        })
+        if (not serializer.is_valid()):
+            return Response(serializer.errors, status=400)
+        serializer.save()
+        return Response({
+            'msg': 'kyc successfully set',
+            'kyc': serializer.data
+        })
+
+    def put(self, request: Request):
+        user = request.user
+        if (not hasattr(user.company, 'kyc')):
+            return Response({
+                'detail': ['no kyc available']
+            }, status=400)
+        kyc = getattr(user.company, 'kyc')
+
+        serializer = CompanyKYCSerializer(
+            data=request.data,
+            instance=kyc
+        )
+        if (not serializer.is_valid()):
+            return Response(serializer.errors, status=400)
+        serializer.save()
+        return Response({
+            'msg': 'kyc successfully updated',
+            'kyc': serializer.data
+        })
+        

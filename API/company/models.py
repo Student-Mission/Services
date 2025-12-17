@@ -3,7 +3,7 @@ from user_auth.models import MissionUser
 from student.models import Student
 from django.contrib.postgres.fields import ArrayField
 import uuid
-from api.utils import rename_upload
+from api.utils import rename_upload, document_rename_upload
 
 
 class Company(models.Model):
@@ -17,12 +17,14 @@ class Company(models.Model):
 class CompanyKYC(models.Model):
     KYC_STATUS = (
         ('not-validated', "Not validated"),
-        ('in_progress', "In progress"),
+        ('pending', "Pending"),
         ('validated', 'Validated')
     )
     title = models.CharField(max_length=100)
-    document_url = models.TextField()
-    status = models.CharField(max_length=90, choices=KYC_STATUS)
+    # document_url = models.TextField()
+    document = models.FileField(null=True, default=None, upload_to=document_rename_upload)
+    updated_at = models.DateTimeField(auto_now=True)
+    status = models.CharField(max_length=90, choices=KYC_STATUS, default='pending')
     company = models.OneToOneField(Company, on_delete=models.CASCADE, related_name='kyc')
 
 class Mission(models.Model):
