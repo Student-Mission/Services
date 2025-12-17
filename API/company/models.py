@@ -58,7 +58,16 @@ class Mission(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     
     company = models.ForeignKey(Company, on_delete=models.SET_NULL, null=True, related_name="missions")
-    student = models.ForeignKey(Student, on_delete=models.SET_NULL, null=True, related_name="missions")
+    # student = models.ForeignKey(Student, on_delete=models.SET_NULL, null=True, related_name="missions")
+
+class Role(models.Model):
+    quality_rate = models.FloatField(default=0.0) # 0 to 10
+    deadline_rate = models.FloatField(default=0.0)
+    communication_rate = models.FloatField(default=0.0)
+    rate = models.FloatField(default=0.0)
+    feedback = models.TextField(null=True, blank=True)
+    student = models.ForeignKey(Student, on_delete=models.SET_NULL, null=True, blank=True, related_name="roles")
+    mission = models.OneToOneField(Mission, on_delete=models.CASCADE, related_name="role")
 
 class Application(models.Model):
 

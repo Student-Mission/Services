@@ -4,9 +4,48 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from api.permissions import IsCompany, IsValidatedCompany
-from .models import Mission
+from .models import Mission, Role, Application
 from .serializers import NewMissionSerializer
-from .serializers import MissionCardSerializer
+# from .serializers import MissionCardSerializer
+from django.db.models import Q
+from django.utils import timezone
+from datetime import datetime
+from .utils import get_applications_rate, get_missions_per_month
+from .serializers import CompanyUserProfileSerializer, AccountSerializer
+
+class Dashboard(APIView):
+    permission_classes = [IsAuthenticated, IsCompany]
+
+    def get(self, request: Request):
+        user = request.user
+        # Make header
+        header = {
+            'active_missions': Role.objects.filter(mission__company=user.company, student__isnull=False).count(),
+            'waiting_applications': Application.objects.filter(mission__company=user.company, status='pending').count(),
+            'students_hired': Role.objects.filter(mission__company=user.company, student__isnull=False).values("student").distinct().count(),
+            'all_missions': Mission.objects.filter(company=user.company).count()
+        }
+
+        # Make profile
+        profile = {
+            'status': 'free',
+            'validated': user.company.is_active,
+            'picture': user.company.picture.url
+        }
+
+        # Make charts
+        stats = {
+            'missions_per_month': get_missions_per_month(user),
+            'applications_rate': get_applications_rate(user)
+        }
+        
+        data = {
+            'header': header,
+            'profile': profile,
+            'stats': stats
+        }
+
+        return Response(data)
 
 class CreateMission(APIView):
 
@@ -88,11 +127,6 @@ class RateMission(APIView):
 
     def put(self, request: Request, uuid):
         pass
-# Dashboard
-class Dashboard(APIView):
-    permission_classes = [IsAuthenticated, IsCompany]
-    def get(self, request: Request):
-        pass
 
 # Profile
 
@@ -103,10 +137,26 @@ class CompanyProfile(APIView):
     permission_classes = [IsAuthenticated, IsCompany]
 
     def get(self, request: Request):
-        pass
+        user = request.user
+        return Response({
+            'profile': CompanyUserProfileSerializer(user).data
+        })
 
-    def put(self, request: Request):
-        pass
+    def patch(self, request: Request):
+        user = request.user
+        serializer = AccountSerializer(
+            data=request.data,
+            instance=user,
+            context={
+                'user': user
+            }
+        )
+        if (not serializer.is_valid()):
+            return Response(serializer.errors, status=400)
+        serializer.save()
+        return Response({
+            'msg': 'account successfully updated'
+        })
 
 class AddCompanyKYC(APIView):
     """
