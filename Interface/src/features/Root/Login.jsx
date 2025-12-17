@@ -3,11 +3,12 @@ import logo from "../../assets/images/stm.png";
 import { Link, useNavigate } from "react-router-dom";
 import { Input, Textarea } from "@mui/joy";
 import { IoEyeOutline, IoEyeOffOutline } from "react-icons/io5";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import login from "../../services/root/login";
 import loginRules from "./rules/login";
 import Validator from "../../lib/validations/validator";
 import ErrorBox from "../../components/ui/ErrorBox";
+import { GlobalContext } from "../../contexts/Global";
 
 function Login() {
 
@@ -23,6 +24,8 @@ function Login() {
     useEffect(()=>{
         document.title = 'Login - STM'
     }, [])
+
+    const {setSkills, setProfile} = useContext(GlobalContext);
 
     const handleChange = (event)=>{
         setForm({
@@ -43,11 +46,10 @@ function Login() {
         const formErrors = Validator.validate(form, loginRules);
 
         if (Object.keys(formErrors).length === 0) {
-            const newForm = {
-                email_or_username: form.email,
-                password: form.password
-            }
-            login(newForm, setLoading, setMainError, navigate);
+            login(form, setLoading, setMainError, navigate, (data)=>{
+                setSkills(data.available_skills);
+                setProfile(data.profile);
+            });
         } else {
             setErrors(formErrors);
         }

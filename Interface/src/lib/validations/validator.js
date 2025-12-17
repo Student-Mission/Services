@@ -62,6 +62,129 @@ const URL_REGEX = /^(https?:\/\/)(?:[^\s:@\/]+:\S+@)?(?:(?:[A-Za-z0-9-]+\.)+[A-Z
 // Lettres Unicode, chiffres, _, - et .
 const NAME_WITH_SPACES_REGEX = /^(?!\s)(?!.*\s$)(?!.*[_\-.]{2})(?!.*\s{2})[\p{L}\p{N}._\-\s]{3,30}$/u;
 
+/* ---------- Helpers file / mime ---------- */
+
+const MB = (n) => n * 1024 * 1024;
+
+const DEFAULT_IMAGE_MIMES = [
+  'image/png',
+  'image/jpeg',
+  'image/jpg',
+  'image/webp',
+  'image/svg+xml'
+];
+
+const DEFAULT_DOC_MIMES = [
+  'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+];
+
+function expandTypesToMimes(types = []) {
+  // types can contain 'image','pdf','doc','any' or explicit mime types
+  const mimes = new Set();
+  types.forEach(t=>{
+    if (!t) return;
+    const tt = t.toLowerCase();
+    if (tt === 'any') {
+      mimes.add('any');
+      return;
+    }
+    if (tt === 'image') {
+      DEFAULT_IMAGE_MIMES.forEach(m=>mimes.add(m));
+      return;
+    }
+    if (tt === 'pdf') {
+      mimes.add('application/pdf');
+      return;
+    }
+    if (tt === 'doc') {
+      DEFAULT_DOC_MIMES.forEach(m=>mimes.add(m));
+      return;
+    }
+    // explicit mime
+    mimes.add(t);
+  });
+  return Array.from(mimes);
+}
+
+function isFileObject(o) {
+  return (typeof File !== 'undefined' && o instanceof File) || (o && typeof o === 'object' && typeof o.size === 'number' && typeof o.type === 'string');
+}
+
+function normalizeFileList(input) {
+  if (!input) return [];
+  if (Array.isArray(input)) return input.filter(Boolean);
+  // FileList or similar
+  if (typeof input.length === 'number' && input[0]) {
+    // convert to array
+    return Array.prototype.slice.call(input);
+  }
+  // single File
+  if (isFileObject(input)) return [input];
+  return [];
+}
+
+function validateFileObject(input, fileRule = {}) {
+  // returns null if ok, or an {fr,en} object if error
+  const files = normalizeFileList(input);
+  if (files.length === 0) return null; // no file => nothing to validate here
+
+  const maxSizeMB = fileRule.maxSizeMB || fileRule.maxSize || fileRule.maxSizeMb || null;
+  const allowedTypes = fileRule.types ? expandTypesToMimes(Array.isArray(fileRule.types) ? fileRule.types : [fileRule.types]) : null;
+  const msgFr = fileRule.fr || fileRule.messageFr || null;
+  const msgEn = fileRule.en || fileRule.messageEn || null;
+
+  for (let i = 0; i < files.length; i++) {
+    const f = files[i];
+    if (!isFileObject(f)) {
+      // unknown object, skip or mark invalid
+      return {
+        fr: msgFr || "Fichier invalide",
+        en: msgEn || "Invalid file"
+      };
+    }
+    if (maxSizeMB) {
+      const maxBytes = MB(maxSizeMB);
+      if (f.size > maxBytes) {
+        return {
+          fr: msgFr || `Fichier trop volumineux (max ${maxSizeMB}MB)`,
+          en: msgEn || `File too large (max ${maxSizeMB}MB)`
+        };
+      }
+    }
+    if (allowedTypes && allowedTypes.length > 0) {
+      if (allowedTypes.includes('any')) {
+        // accept
+      } else {
+        const mime = (f.type || '').toLowerCase();
+        // image/* check if allowedTypes includes any image mime
+        if (mime.startsWith('image/')) {
+          // if any image mime present in allowedTypes it's ok
+          const hasImage = allowedTypes.some(m => m.startsWith('image/'));
+          if (!hasImage && !allowedTypes.includes(mime)) {
+            return {
+              fr: msgFr || "Type de fichier non autorisé",
+              en: msgEn || "File type not allowed"
+            };
+          }
+        } else {
+          // check explicit mime
+          if (!allowedTypes.includes(mime)) {
+            return {
+              fr: msgFr || "Type de fichier non autorisé",
+              en: msgEn || "File type not allowed"
+            };
+          }
+        }
+      }
+    }
+  }
+
+  return null;
+}
+
+/* ---------- Validator class ---------- */
+
 class Validator {
     constructor() {
 
@@ -78,6 +201,27 @@ class Validator {
                     en: rule[field].required.en
                 }
                 return;
+            }
+
+            // equalsField (cross-field equality check)
+            if (rule[field].equalsField && form[field] !== undefined) {
+                const otherField = rule[field].equalsField.field;
+                if (form[otherField] === undefined || form[field] !== form[otherField]) {
+                    errors[field] = {
+                        fr: rule[field].equalsField.fr || "Les champs ne correspondent pas",
+                        en: rule[field].equalsField.en || "Fields do not match"
+                    }
+                    return;
+                }
+            }
+
+            // FILE validation (supports File, FileList or Array<File>)
+            if (rule[field].file && form[field]) {
+                const fileError = validateFileObject(form[field], rule[field].file);
+                if (fileError) {
+                    errors[field] = fileError;
+                    return;
+                }
             }
 
             // min length

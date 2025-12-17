@@ -1,18 +1,21 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import CompanyNavigation from "../../components/layout/CompanyNavigation";
 import Container from "../../components/layout/Container";
-import { FormControl, FormLabel, Input, Option, Select, Textarea } from "@mui/joy";
+import { Chip, FormControl, FormLabel, Input, Option, Select, Textarea } from "@mui/joy";
 import { Button, CircularProgress } from "@mui/material";
 import FileCard from "../../components/ui/FileCard";
 import { FaCircleCheck, FaClock } from "react-icons/fa6";
 import { MdCancel } from "react-icons/md";
 import FileInput from "../../components/ui/FileInput";
 import Connection from "../../services/Connection";
-import { accountRules, companyRules } from "./rules/settings";
+import { accountRules, kycRules, passwordRules, pictureRules } from "./rules/settings";
 import ErrorBox from "../../components/ui/ErrorBox";
 import Validator from "../../lib/validations/validator";
 import ImageInput from "../../components/ui/ImageInput";
 import { useNavigate } from "react-router-dom";
+import { requestFailureHandler } from "../../lib/utils";
+import { GlobalContext } from "../../contexts/Global";
+import { GoDownload } from "react-icons/go";
 
 const MEDIA_API = 'http://localhost:8000';
 
@@ -59,175 +62,204 @@ const Header = ()=>{
     )
 }
 
-const Content = ({profile, setProfile})=>{
+const Content = ({account, setAccount, kyc, setKyc})=>{
 
     const [currentLanguage, setCurrentLanguage] = useState('en');
     const navigate = useNavigate();
     const [showKYCForm, setShowKYCForm] = useState(false);
-    const [account, setAccount] = useState(profile.account);
-    const [company, setCompany] = useState(profile.company);
-    const [canChangePassword, enablePasswordChange] = useState(false)
-    const [showAccountUpdateButton, setShowAccountUpdateButton] = useState(false);
-    const [showCompanyUpdateButton, setShowCompanyUpdateButton] = useState(false);
-    const [accountErrors, setAccountErrors] = useState({});
-    const [accountUpdateLoading, setAccountUpdateLoading] = useState(false);
-    const [accountRequestError, setAccountRequestError] = useState(null);
+    const [errors, setErrors] = useState({});
+    const [form, setForm] = useState(account);
+    const [passwords, setPasswords] = useState({
+        old_password: '',
+        new_password: ''
+    })
+    const [passwordErrors, setPasswordErrors] = useState({});
+    const [passwordUpdateError, setPasswordUpdateError] = useState(null);
+    const [passwordUpdateLoading, setPasswordUpdateLoading] = useState(false);
 
-    const [companyErrors, setCompanyErrors] = useState({});
-    const [companyUpdateLoading, setCompanyUpdateLoading] = useState(false);
-    const [companyRequestError, setCompanyRequestError] = useState(null);
+    const [canChangePassword, setCanChangePassword] = useState(false);
+    const [updateLoading, setUpdateLoading] = useState(false);
+    const [updateRequestError, setUpdateRequestError] = useState(null);
+    const {setProfile} = useContext(GlobalContext);
+
+    const [kycForm, setKycForm] = useState({
+        title: '',
+        document: null
+    });
+    const [kycUpdateLoading, setKycUpdateLoading] = useState(false);
+    const [kycErrors, setKycErrors] = useState({});
+    const [kycRequestError, setKycRequestError] = useState(null);
+    const [kycDownloading, setKycDownloading] = useState(false);
 
     // Handlers
-    const handleAccountChange = (event)=>{
-        const accountTMP = {
-            ...account,
-            [event.target.name]: event.target.value
-        }
+    useEffect(()=>{
+        setForm(account);
+    }, [account])
 
-        setAccount(accountTMP);
-        setShowAccountUpdateButton(accountTMP !== profile.account);
-        console.log('Accounts ', accountTMP !== profile.account);
-        console.log(`Edited ${JSON.stringify(accountTMP)}`);
-        console.log(`Origin ${JSON.stringify(profile.account)}`);
+    const handleChange = (event)=>{
+        setForm({
+            ...form,
+            [event.target.name]: event.target.value
+        })
     }
 
-    const handleAccountSubmit = ()=>{
-        setAccountErrors({});
-        setAccountRequestError(null);
-        const errors = Validator.validate(account, {
-            ...accountRules,
-            ['password']: canChangePassword ? accountRules.password : {}
-        });
-        if (Object.keys(errors).length === 0) {
-            const data = {
-                ...account,
-                ['password']: account.password.length === 0 ? undefined: account.password
-            }
-            Connection.patch('business/profile/', {account: data}, (data)=>{
-                enablePasswordChange(false);
-                setShowAccountUpdateButton(false);
-                const accountTMP = {
-                    ...account,
-                    ['password']: ''
+    const handlePasswordsChange = (event)=>{
+        setPasswords({
+            ...passwords,
+            [event.target.name]: event.target.value
+        })
+    }
+
+    const handleUpdate = ()=>{
+        setErrors({});
+        setUpdateRequestError(null);
+        const validationRules = form.picture != account.picture ?
+        {...accountRules, ...pictureRules}: accountRules
+        const errorsTMP = Validator.validate(form, validationRules);
+
+        if (Object.keys(errorsTMP).length === 0) {
+            const formData = new FormData();
+            Object.keys(form).forEach((key)=>{
+                if (form[key] != account[key]) {
+                    formData.append(key, form[key])
                 }
-                setAccount(accountTMP);
-                setProfile({
-                    ...profile,
-                    ['account']: accountTMP
-                })
-            }, (error)=>{
-                if (error.response) {
-                    const status =  error.response.status;
-                    if (status === 401) {
-                        navigate("/login");
+            })
+            Connection.patch('company/profile/', formData, (data)=>{
+                setAccount(form);
+                setProfile((prev)=>(
+                    {
+                        ...prev,
+                        ['username']: form.username,
+                        ['email']: form.email
                     }
-                    if (status === 400 && error.response.data.msg === 'email already used') {
-                        setAccountRequestError({
-                            fr: "L'email entré est déjà utilisé",
-                            en: "Email already used"
+                ))
+            }, (error)=>{
+                requestFailureHandler(error, setUpdateRequestError, navigate, (data)=>{
+                    if (data.detail && data.detail instanceof Array && data.detail.length > 0 && data.detail[0] === 'A company with this name already exists') {
+                        setUpdateRequestError({
+                            fr: "Une entreprise de ce nom existe déjà.",
+                            en: "A company with this name already exists."
                         })
                     } else {
-                        setAccountRequestError({
+                        setUpdateRequestError({
                             fr: "Formulaire invalide",
                             en: "Invalid form"
                         })
                     }
-                } else {
-                    setAccountRequestError({
-                        fr: "Erreur inattendue",
-                        en: "Unexpected error"
+                })
+            }, setUpdateLoading, true);
+        } else {
+            setErrors(errorsTMP);
+        }
+    }
+
+    const handlePasswordUpdate = ()=>{
+        setPasswordErrors({});
+        setPasswordUpdateError(null);
+        const errorsTMP = Validator.validate(passwords, passwordRules);
+
+        if (Object.keys(errorsTMP).length === 0) {
+            if (passwords.old_password === passwords.new_password) {
+                setPasswordUpdateError({
+                    fr: "Les mots de passes doivent être différents",
+                    en: "Passwords must not be the same"
+                })
+                return;
+            }
+            Connection.put('auth/change-password/', passwords, (data)=>{
+                setPasswords({
+                    old_password: '',
+                    new_password: ''
+                })
+                setCanChangePassword(false);
+            }, (error)=>{
+                requestFailureHandler(error, setPasswordUpdateError, navigate, (data)=>{
+                    if (data.detail && data.detail instanceof Array && data.detail.length > 0) {
+                        const msg = data.detail[0]
+                        if (msg === 'bad credentials') {
+                            setPasswordErrors({
+                                old_password: {
+                                    fr: "Mot de passe incorrecte",
+                                    en: "Bad password"
+                                }
+                            })
+                        } else if (msg === 'passwords must not be the same') {
+                            setPasswordUpdateError({
+                                fr: "Les mots de passes doivent être différents",
+                                en: "Passwords must not be the same"
+                            })
+                        }
+                    }
+                })
+            }, setPasswordUpdateLoading, true);
+        } else {
+            setPasswordErrors(errorsTMP);
+        }
+    }
+
+    const handleKYCUpdate = ()=>{
+        const errorsTMP = Validator.validate(kycForm, kycRules);
+        setKycErrors({});
+        setKycRequestError(null);
+        const formData = new FormData();
+
+        if (Object.keys(errorsTMP).length === 0) {
+            formData.append('title', kycForm.title);
+            formData.append('document', kycForm.document);
+            if (kyc) {
+                Connection.put('company/profile/kyc/', formData, (data)=>{
+                    setKyc(data.kyc);
+                    setKycForm({
+                        title: '',
+                        document: null
                     })
-                }
-            }, setAccountUpdateLoading, true);
-        } else {
-            setAccountErrors(errors);
-        }
-    }
-
-    const handleCompanyChange = (event)=>{
-        const companyTMP = {
-            ...company,
-            [event.target.name]: event.target.value
-        }
-
-        setCompany(companyTMP);
-        setShowCompanyUpdateButton(companyTMP !== profile.company);
-    }
-
-    const handleReset = (setValue, initial)=>{
-        setValue(initial);
-    }
-
-    const companySubmitFailureHandler = (error)=>{
-        setCompanyUpdateLoading(false);
-        if (error.response) {
-            const status = error.response.status;
-            if (status === 401) {
-                navigate('/login');
-            } else if (status === 400) {
-                setCompanyRequestError({
-                    fr: "Formulaire invalide",
-                    en: "Invalid form"
-                })
-            } else if (status >= 500) {
-                setCompanyRequestError({
-                    fr: "Erreur serveur, veuillez réessayer",
-                    en: "Server error, try again"
-                })
-            }
-        } else {
-            setCompanyRequestError({
-                fr: "Erreur inattendue",
-                en: "Unexpected error"
-            })
-        }
-    }
-
-    const handleCompanySubmit = ()=>{
-        setCompanyErrors({});
-        setCompanyRequestError(null);
-        setCompanyUpdateLoading(true);
-        const errors = Validator.validate(company, companyRules);
-        const form = new FormData();
-
-        if (Object.keys(errors).length === 0) {
-            const companyForm = {
-                name: company.name,
-                brief: company.brief
-            }
-            if (company.picture instanceof Blob) {
-                form.append('picture', company.picture);
-                Connection.post('user/profile/', form, ()=>{
-                    Connection.patch('business/profile/', companyForm, (data)=>{
-                        setShowCompanyUpdateButton(false);
-                        setProfile({
-                            ...profile,
-                            ['company']: company
-                        })
-                }, companySubmitFailureHandler, setCompanyUpdateLoading, true);
-                }, companySubmitFailureHandler, null, true);
+                    setShowKYCForm(false);
+                }, (error)=>{
+                    requestFailureHandler(error, setKycRequestError, navigate);
+                }, setKycUpdateLoading, true)
             } else {
-                Connection.patch('business/profile/', companyForm, (data)=>{
-                    setShowCompanyUpdateButton(false);
-                    setProfile({
-                        ...profile,
-                        ['company']: company
+                Connection.post('company/profile/kyc/', formData, (data)=>{
+                    setKyc(data.kyc);
+                    setKycForm({
+                        title: '',
+                        document: null
                     })
-                }, companySubmitFailureHandler, setCompanyUpdateLoading, true);
+                    setShowKYCForm(false);
+                }, (error)=>{
+                    requestFailureHandler(error, setKycRequestError, navigate);
+                }, setKycUpdateLoading, true)
             }
         } else {
-            setCompanyErrors(errors);
+            setKycErrors(errorsTMP);
         }
-
     }
 
-    // Effects
-    useEffect(()=>{
-        if (company.picture instanceof Blob) {
-            setShowCompanyUpdateButton(true);
+    const downloadFile = async (fileUrl, fileName) => {
+        setKycDownloading(true);
+        try {
+            // 1. Récupérer les données du fichier
+            const response = await fetch(fileUrl);
+            const blob = await response.blob();
+
+            // 2. Créer une URL temporaire pour le Blob
+            const url = window.URL.createObjectURL(blob);
+
+            // 3. Créer un lien invisible et cliquer dessus
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', fileName || 'document_download');
+            document.body.appendChild(link);
+            link.click();
+
+            // 4. Nettoyage
+            link.parentNode.removeChild(link);
+            window.URL.revokeObjectURL(url);
+        } catch (error) {
+            console.error("Erreur lors du téléchargement :", error);
+        } finally {
+            setKycDownloading(false);
         }
-    }, [company.picture])
-    
+    };
 
     return (
         <div className={`pt-10`}>
@@ -242,60 +274,69 @@ const Content = ({profile, setProfile})=>{
             </div>
 
             <div className={`mt-8 bg-white rounded-2xl shadow-2xs p-2 xl:p-4 pt-8! pb-8! border border-gray-100`}>
-                <h4 className={`roboto-medium text-[22px]`}>Profile</h4>
+                <h4 className={`roboto-medium text-[22px]`}>Account & Company profile</h4>
 
                 <div className={`mt-5`}>
                     <FormControl className={``}>
                         <FormLabel className={`text-[16px]! text-blue-focus roboto`}>Username</FormLabel>
-                        <Input placeholder="Ex: John Doe" value={account.username} onChange={handleAccountChange} name="username" className={`w-full xl:w-[65%] h-[45px] roboto`} />
+                        <Input placeholder="Ex: John Doe" value={form.username} onChange={handleChange} name="username" className={`w-full xl:w-[65%] h-[45px] roboto`} />
                         {
-                            accountErrors.username && <ErrorBox content={accountErrors.username} />
+                            errors.username && <ErrorBox content={errors.username} />
                         }
                     </FormControl>
                     <FormControl className={`mt-4`}>
                         <FormLabel className={`text-[16px]! text-blue-focus roboto`}>Email</FormLabel>
-                        <Input type='email' placeholder="Ex: johndoe@fake.com" value={account.email} onChange={handleAccountChange} name='email' className={`w-full xl:w-[65%] h-[45px] roboto`} />
+                        <Input type='email' placeholder="Ex: johndoe@fake.com" value={form.email} onChange={handleChange} name='email' className={`w-full xl:w-[65%] h-[45px] roboto`} />
                         {
-                            accountErrors.email && <ErrorBox content={accountErrors.email} />
+                            errors.email && <ErrorBox content={errors.email} />
+                        }
+                    </FormControl>
+                    <FormControl className="mt-4">
+                        <FormLabel className="text-[16]! text-blue-focus roboto ">Photo</FormLabel>
+                        <ImageInput ID={'company-pic'} setImage={(value)=>{
+                            setForm({
+                                ...form,
+                                ['picture']: value
+                            })
+                        }} defaultLabel={MEDIA_API + form.picture} className="w-full xl:w-[300px] border border-gray-200 cursor-pointer!" />
+                        {
+                            errors.picture && <ErrorBox content={errors.picture} />
                         }
                     </FormControl>
                     <FormControl className={`mt-4`}>
-                        <FormLabel className={`text-[16px]! text-blue-focus roboto`}>Password</FormLabel>
-                        <div className="flex items-center gap-4">
-                            <Input disabled={!canChangePassword} placeholder="* * * * * * * *" type="password" value={account.password} name="password" onChange={handleAccountChange} className={`w-full xl:w-[65%] h-[45px]`} />
-                            {
-                                !canChangePassword &&
-                                <Button onClick={()=>enablePasswordChange(true)} sx={{
-                                    textTransform: 'none'
-                                }} className="bg-blue-main text-[17px]! h-[45px] w-[100px] text-white!">
-                                    Change
-                                </Button>
-                            }
-                        </div>
+                        <FormLabel className={`text-[16px]! text-blue-focus roboto`}>Company name</FormLabel>
+                        <Input placeholder="Ex: John Doe" value={form.name} name="name" onChange={handleChange} className={`w-full xl:w-[65%] h-[45px] roboto`} />
                         {
-                            accountErrors.password && <ErrorBox content={accountErrors.password} />
+                            errors.name && <ErrorBox content={errors.name} />
+                        }
+                    </FormControl>
+                    <FormControl className={`mt-4`}>
+                        <FormLabel className={`text-[16px]! text-blue-focus roboto`}>Description</FormLabel>
+                        <Textarea minRows={8} value={form.description} name="description" onChange={handleChange} className="w-full xl:w-[65%]" />
+                        {
+                            errors.description && <ErrorBox content={errors.description} />
                         }
                     </FormControl>
                     {
-                        accountRequestError && <ErrorBox content={accountRequestError} className="mt-2" />
+                        updateRequestError && <ErrorBox content={updateRequestError} />
                     }
 
                     <div className="flex items-center gap-4 mt-4">
                         {
-                            showAccountUpdateButton &&
+                            form !== account &&
                             <>
                                 <Button sx={{
                                     textTransform: 'none'
                                 }} variant='outlined' onClick={()=>{
-                                    handleReset(setAccount, profile.account);
-                                }} disabled={accountUpdateLoading} className="w-[100px] h-[38px] border-gray-main text-gray-main roboto-medium">
+                                    setForm(account);
+                                }} disabled={updateLoading} className="w-[100px] h-[38px] border-gray-main text-gray-main roboto-medium">
                                     Cancel
                                 </Button>
-                                <Button onClick={handleAccountSubmit} disabled={accountUpdateLoading} sx={{
+                                <Button onClick={handleUpdate} disabled={updateLoading} sx={{
                                     textTransform: 'none'
                                 }} className="w-[100px] h-[38px] bg-blue-main text-white! roboto-medium ">
                                     {
-                                        accountUpdateLoading ?
+                                        updateLoading ?
                                         <CircularProgress size={24} sx={{
                                             color: 'white'
                                         }} />:<>Update</>
@@ -308,100 +349,177 @@ const Content = ({profile, setProfile})=>{
             </div>
 
             <div className={`bg-white mt-8 rounded-2xl shadow-2xs p-2 xl:p-4 pt-8! pb-8! border border-gray-100`}>
-                <h4 className={`roboto-medium text-[22px]`}>Company</h4>
+                <h4 className={`roboto-medium text-[22px]`}>Account security</h4>
+                <FormControl className={`mt-4`}>
+                    <FormLabel className={`text-[16px]! text-blue-focus roboto`}>
+                        {
+                            canChangePassword && <>Old password</>
+                        }
+                    </FormLabel>
+                    <div className="flex items-center gap-4">
+                        <div className="w-full xl:w-[65%]">
+                            <Input disabled={!canChangePassword} placeholder="* * * * * * * *" type="password" value={passwords.old_password} name="old_password" onChange={handlePasswordsChange} className={`w-full h-[45px]`} />
+                            {
+                                canChangePassword && passwordErrors.old_password && <ErrorBox content={passwordErrors.old_password} />
+                            }
+                        </div>
+                        {
+                            !canChangePassword &&
+                                <Button onClick={()=>setCanChangePassword(true)} sx={{
+                                    textTransform: 'none'
+                                }} className="bg-blue-main text-[17px]! h-[45px] w-[100px] text-white!">
+                                    Change
+                                </Button>
+                            }
+                        </div>
+                </FormControl>
+                {
+                    canChangePassword &&
+                    <FormControl className={`mt-4`}>
+                        <FormLabel className={`text-[16px]! text-blue-focus roboto`}>New password</FormLabel>
+                        <Input placeholder="* * * * * * * * *" type="password" value={passwords.new_password} name="new_password" onChange={handlePasswordsChange} className={`w-full xl:w-[65%] h-[45px]`} />
+                        {
+                            passwordErrors.new_password && <ErrorBox content={passwordErrors.new_password} />
+                        }
+                    </FormControl>
+                }
+                {
+                    canChangePassword &&
+                    <>
+                        {
+                            passwordUpdateError && <ErrorBox content={passwordUpdateError} />
+                        }
+                        <div className={`mt-3 flex items-center justify-end gap-4 w-full xl:w-[65%] h-[45px]`}>
+                            <Button onClick={()=>{
+                                setPasswords({
+                                    old_password: '',
+                                    new_password: ''
+                                })
+                            }} disabled={passwordUpdateLoading} variant='outlined' sx={{
+                                textTransform: 'none'
+                            }} className={`border-sky text-sky roboto`}>
+                                Cancel
+                            </Button>
+                            <Button onClick={handlePasswordUpdate} disabled={passwordUpdateLoading} sx={{
+                                textTransform: 'none'
+                            }} className={`w-[120px] h-[38px] bg-blue-main text-white! roboto`}>
+                                {
+                                    passwordUpdateLoading ?
+                                    <CircularProgress size={21} sx={{
+                                        color: "white"
+                                    }} />:
+                                    <>Change</>
+                                }
+                            </Button>
+                        </div>
+                    </>
+                }
+            </div>
+
+            <div className={`bg-white mt-8 rounded-2xl shadow-2xs p-2 xl:p-4 pt-8! pb-8! border border-gray-100`}>
+                <h4 className={`roboto-medium text-[22px]`}>Company Proof</h4>
                 
                 <div className={`mt-5`}>
-                    <FormControl>
-                        <FormLabel className="text-[16]! text-blue-focus roboto ">Photo</FormLabel>
-                        <ImageInput ID={'company-pic'} setImage={(value)=>{
-                            setCompany({
-                                ...company,
-                                ['picture']: value
-                            })
-                        }} defaultLabel={MEDIA_API + company.picture} className="w-full xl:w-[300px] border border-gray-200 cursor-pointer!" />
-                    </FormControl>
-                    <FormControl className={`mt-4`}>
-                        <FormLabel className={`text-[16px]! text-blue-focus roboto`}>Name</FormLabel>
-                        <Input placeholder="Ex: John Doe" value={company.name} name="name" onChange={handleCompanyChange} className={`w-full xl:w-[65%] h-[45px] roboto`} />
-                        {
-                            companyErrors.name && <ErrorBox content={companyErrors.name} />
-                        }
-                    </FormControl>
-                    <FormControl className={`mt-4`}>
-                        <FormLabel className={`text-[16px]! text-blue-focus roboto`}>Description</FormLabel>
-                        <Textarea minRows={8} value={company.brief} name="brief" onChange={handleCompanyChange} className="w-full xl:w-[65%]" />
-                        {
-                            companyErrors.brief && <ErrorBox content={companyErrors.brief} />
-                        }
-                    </FormControl>
-                    {
-                        companyRequestError && <ErrorBox content={companyRequestError} />
-                    }
-                    {
-                        showCompanyUpdateButton &&
-                        <div className="mt-4 flex items-center gap-3">
-                            <Button sx={{
-                                    textTransform: 'none'
-                                }} variant='outlined' onClick={()=>{
-                                    handleReset(setCompany, profile.company);
-                                }} disabled={companyUpdateLoading} className="w-[100px] h-[38px] border-gray-main text-gray-main roboto-medium">
-                                    Cancel
-                                </Button>
-                                <Button onClick={handleCompanySubmit} disabled={companyUpdateLoading} sx={{
-                                    textTransform: 'none'
-                                }} className="w-[100px] h-[38px] bg-blue-main text-white! roboto-medium ">
-                                    {
-                                        companyUpdateLoading ?
-                                        <CircularProgress size={24} sx={{
-                                            color: 'white'
-                                        }} />:<>Update</>
-                                    }
-                                </Button>
-                        </div>
-                    }
+                    
                     <FormControl className="mt-4">
                         <FormLabel className="text-[16px]! text-blue-focus roboto-medium ">KYC</FormLabel>
                         {
                             showKYCForm ?
                             <div className={`w-full xl:w-[65%] mt-5 mb-5`}>
                                 <FormControl className={``}>
-                                    <Input placeholder="Title" className={`roboto`} type='text' />
+                                    <Input placeholder="Title" className={`roboto`} value={kycForm.title} onChange={(e)=>setKycForm({...kycForm, ['title']: e.target.value})} type='text' />
+                                    {
+                                        kycErrors.title && <ErrorBox content={kycErrors.title} />
+                                    }
                                 </FormControl>
                                 <FormControl className={`mt-3`}>
-                                    <FileInput placeholder="Select document" />
+                                    {
+                                        kycForm.document &&
+                                        <Chip className="mb-3" variant='outlined'>
+                                            {
+                                                kycForm.document.name
+                                            }
+                                        </Chip>
+                                    }
+                                    <FileInput placeholder="Select document" onChange={(value)=>{
+                                        setKycForm({
+                                            ...kycForm,
+                                            ['document']: value
+                                        })
+                                    }} />
+                                    {
+                                        kycErrors.document && <ErrorBox content={kycErrors.document} />
+                                    }
+                                    
                                 </FormControl>
+                                {
+                                    kycRequestError && <ErrorBox content={kycRequestError} />
+                                }
                                 <div className={`mt-3 flex items-center gap-3`}>
                                     <Button sx={{
                                         textTransform: 'none'
-                                    }} onClick={()=>setShowKYCForm(false)} variant='outlined' className={`w-[100px] h-[38px] roboto-medium border-gray-main text-gray-main`}>
+                                    }} disabled={kycUpdateLoading} onClick={()=>{
+                                        setShowKYCForm(false)
+                                        setKycForm({
+                                            title: '', document: null
+                                        })
+                                        setKycErrors({})
+                                        setKycRequestError(null);
+                                    }} variant='outlined' className={`w-[100px] h-[38px] roboto-medium border-gray-main text-gray-main`}>
                                         Cancel
                                     </Button>
-                                    <Button sx={{
+                                    <Button disabled={kycUpdateLoading} sx={{
                                         textTransform: 'none'
-                                    }} className={`w-[100px] h-[38px] bg-blue-main text-white! roboto-medium`}>
-                                        Update
+                                    }} onClick={handleKYCUpdate} className={`w-[100px] h-[38px] bg-blue-main text-white! roboto-medium`}>
+                                        {
+                                            kycUpdateLoading ?
+                                            <CircularProgress size={19} sx={{
+                                                color: 'white'
+                                            }} />:
+                                            <>Update</>
+                                        }
                                     </Button>
                                 </div>
                             </div>:
                             <>
                             {
-                                profile.kyc ?
-                                <div className={``}>
-                                    <div className={`flex items-center gap-3`}>
-                                        <FileCard file={{
-                                            name: profile.kyc.title + '.pdf',
-                                            url: profile.kyc.document
-                                        }} />
-                                        <KYCStatusCard status={profile.kyc.status} />
-                                    </div>
+                                kyc ?
+                                <div className={`mb-3 p-4 h-[77px] flex items-center gap-4 border border-gray-300 rounded-2xl bg-gray-50`}>
                                     {
-                                        profile.kyc.status !== 'waiting-for-validation' &&
-                                        <Button onClick={()=>setShowKYCForm(true)} variant='outlined' sx={{
-                                            textTransform: 'none'
-                                        }} className={`mt-4! w-[180px] h-[38px] border-blue-main text-blue-main roboto-medium`}>
-                                            Request for change
-                                        </Button>
+                                        kyc.status === 'validated' &&
+                                        <FaCircleCheck className={`text-[20px] text-green-600`} />
                                     }
+                                    {
+                                        kyc.status === 'pending' &&
+                                        <FaClock className={`text-amber-600 text-[20px]`}/>
+                                    }
+                                    <div className={``}>
+                                        <strong className={`font-normal text-[17px] roboto text-blue-focus`}>{kyc.title}</strong>
+                                        <p className={`roboto-light text-gray-500`}>Submitted on: {kyc.updated_at}</p>
+                                    </div>
+                                    <div className={`flex gap-4 flex-1 justify-end flex-wrap`}>
+                                        <Button sx={{
+                                            textTransform: 'none'
+                                        }} onClick={()=>{
+                                            setShowKYCForm(true);
+                                        }} className="bg-blue-main text-white! roboto">
+                                            Edit
+                                        </Button>
+                                        <Button disabled={kycDownloading} sx={{
+                                            textTransform: 'none'
+                                        }} onClick={()=>{
+                                            downloadFile(MEDIA_API + kyc.document, kyc.title)
+                                        }} className={`gap-2 text-gray-500! w-[120px] h-[38px] roboto bg-white! border! border-gray-200!`}>
+                                            {
+                                                kycDownloading ?
+                                                <CircularProgress size={19} />:
+                                                <>
+                                                    <GoDownload className={`text-[17px]`}/>
+                                                    Download
+                                                </>
+                                            }
+                                        </Button>
+                                    </div>
                                 </div>:
                                 <Button onClick={()=>setShowKYCForm(true)} sx={{
                                     textTransform: 'none'
@@ -425,17 +543,14 @@ function Settings() {
     // Variables
     const [loading, setLoading] = useState(true);
     const [mainError, setMainError] = useState(null);
-    const [profile, setProfile] = useState({
-        account: {
-            username: "Contact",
-            email: "contact@ubisoft.com",
-            password: ''
-        },
-        company: {
-            name: "Ubisoft",
-            brief: "Video game company",
-        }
+    const [account, setAccount] = useState({
+        name: "",
+        description: "",
+        username: "",
+        email: "",
+        picture: ""
     })
+    const [kyc, setKyc] = useState(null);
 
     // Effects
     useEffect(()=>{
@@ -447,7 +562,8 @@ function Settings() {
 
     const profileSuccessHandler = (data)=>{
         // console.log(data);
-        setProfile(data);
+        setAccount(data.profile);
+        setKyc(data.profile.kyc);
     }
 
     const errorHandler = (error) =>{
@@ -463,7 +579,7 @@ function Settings() {
     }
 
     function fetchProfile() {
-        Connection.get('business/profile/', profileSuccessHandler, errorHandler, setLoading, true);
+        Connection.get('company/profile/', profileSuccessHandler, errorHandler, setLoading, true);
     }
 
 
@@ -483,7 +599,7 @@ function Settings() {
                     !mainError && !loading &&
                     <>
                         <Header />
-                        <Content setProfile={setProfile} profile={profile} />
+                        <Content kyc={kyc} setKyc={setKyc} setAccount={setAccount} account={account} />
                     </>
                 }
                 {

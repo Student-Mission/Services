@@ -29,12 +29,10 @@ export const GlobalProvider = ({children})=>{
     }
 
     const checkAuth = ()=>{
-        Connection.get('user/check-auth/', (data)=>{
+        Connection.get('auth/user/', (data)=>{
             setLogged(true);
-            setProfile(data);
-            Connection.get('user/skills/', (skillsData)=>{
-                setSkills(skillsData.skills);
-            }, skillsFetchErrorHandler, setMainLoading, true);
+            setProfile(data.profile);
+            setSkills(data.available_skills);
         }, (error)=>{
             setMainLoading(false);
             if (error.response) {
@@ -45,7 +43,7 @@ export const GlobalProvider = ({children})=>{
             } else {
                 alert('Network error')
             }
-        }, null, true);
+        }, setMainLoading, true);
     }
 
     useEffect(()=>{
@@ -57,7 +55,7 @@ export const GlobalProvider = ({children})=>{
             navExtended, setNavExtended,
             profile, setProfile,
             mainLoading, setMainLoading,
-            logged, setLogged, skills
+            logged, setLogged, skills, setSkills
         }} >
             {children}
         </GlobalContext.Provider>

@@ -26,25 +26,6 @@ const accountRules = {
             en: "Invalid email format"
         }
     },
-    password: {
-        empty: {
-            fr: "Le mot de passe est requis",
-            en: "Password is required"
-        },
-        minlength: {
-            value: 4,
-            fr: "Le mot de passe doit contenir au moins 4 caractères",
-            en: "Password must be at least 4 characters"
-        },
-        maxlength: {
-            value: 15,
-            fr: "Le mot de passe ne peut pas dépasser 15 caractères",
-            en: "Password cannot exceed 15 characters"
-        }
-    }
-}
-
-const companyRules = {
     name: {
         empty: {
             fr: "Le nom de l'entreprise est requis",
@@ -66,7 +47,7 @@ const companyRules = {
             en: "Invalid name — only letters, numbers, spaces and . _ - are allowed"
         }
     },
-    brief: {
+    description: {
         empty: {
             fr: "La description de l'entreprise est requise",
             en: "Company description is required"
@@ -77,7 +58,7 @@ const companyRules = {
             en: "Description is too short (minimum 10 characters)"
         },
         maxlength: {
-            value: 300,
+            value: 400,
             fr: "La description est trop longue (maximum 300 caractères)",
             en: "Description is too long (maximum 300 characters)"
         },
@@ -89,7 +70,95 @@ const companyRules = {
     }
 }
 
+const pictureRules = {
+    picture: {
+    required: {
+        fr: "La photo est requise.",
+        en: "Picture is required."
+    },
+    file: {
+      maxSizeMB: 5,
+      types: ['image'], // allowed groups or mime types
+      fr: "La taille maximale autorisée pour l'image est 5MB. Formats autorisés: png, jpg, jpeg, webp.",
+      en: "Max image size is 5MB. Allowed formats: png, jpg, jpeg, webp."
+    }
+  }
+}
+
+const passwordRules = {
+    old_password: {
+        empty: {
+            fr: "Le mot de passe est requis",
+            en: "Password is required"
+        },
+        minlength: {
+            value: 4,
+            fr: "Le mot de passe doit contenir au moins 4 caractères",
+            en: "Password must be at least 4 characters"
+        },
+        maxlength: {
+            value: 15,
+            fr: "Le mot de passe ne peut pas dépasser 15 caractères",
+            en: "Password cannot exceed 15 characters"
+        }
+    },
+    new_password: {
+        empty: {
+            fr: "Le mot de passe est requis",
+            en: "Password is required"
+        },
+        minlength: {
+            value: 4,
+            fr: "Le mot de passe doit contenir au moins 4 caractères",
+            en: "Password must be at least 4 characters"
+        },
+        maxlength: {
+            value: 15,
+            fr: "Le mot de passe ne peut pas dépasser 15 caractères",
+            en: "Password cannot exceed 15 characters"
+        }
+    }
+}
+
+const kycRules = {
+    title: {
+        empty: {
+            fr: "Le titre est requis",
+            en: "Title is required"
+        },
+        minlength: {
+            value: 6,
+            fr: "Le titre doit contenir au moins 6 caractères",
+            en: "Title must be at least 6 characters"
+        },
+        maxlength: {
+            value: 30,
+            fr: "Le titre ne peut pas dépasser 30 caractères",
+            en: "Title cannot exceed 30 characters"
+        },
+        pattern: {
+            value: 'spaced_name',
+            fr: "Titre invalide — seuls les lettres, chiffres, espaces et . _ - sont autorisés",
+            en: "Invalid title — only letters, numbers, spaces and . _ - are allowed"
+        }
+    },
+    document: {
+        required: {
+            fr: "Le document est requis.",
+            en: "Document is required."
+        },
+        file: {
+            maxSizeMB: 3,
+            types: ['pdf'], // allowed groups or mime types
+            fr: "La taille maximale autorisée pour le document est 3MB. Formats autorisés: pdf.",
+            en: "Max document size is 3MB. Allowed formats: pdf."
+        }
+    }
+}
+
 export {
     accountRules,
-    companyRules
+    passwordRules,
+    pictureRules,
+    kycRules
 }

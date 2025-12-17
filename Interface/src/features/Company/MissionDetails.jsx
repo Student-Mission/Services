@@ -1,13 +1,13 @@
 import { useContext, useEffect, useState } from "react";
 import CompanyNavigation from "../../components/layout/CompanyNavigation";
 import Container from "../../components/layout/Container";
-import { Avatar, Button, Chip, CircularProgress } from "@mui/material";
+import { Avatar, Button, CircularProgress, IconButton } from "@mui/material";
 import cover from "../../assets/images/cover.png";
 import { FaCalendar, FaStar } from "react-icons/fa";
 import dayjs from "dayjs";
 import 'dayjs/locale/fr';
 import utc from "dayjs/plugin/utc";
-import { Autocomplete, FormControl, FormLabel, Input, Textarea } from "@mui/joy";
+import { Autocomplete, Breadcrumbs, FormControl, FormLabel, Input, Link, Option, Select, Textarea, Typography, Chip as JChip } from "@mui/joy";
 import Connection from "../../services/Connection";
 import { useNavigate, useParams } from "react-router-dom";
 import { GlobalContext } from "../../contexts/Global";
@@ -15,6 +15,7 @@ import ImageInput from "../../components/ui/ImageInput";
 import { missionRules, roleRules } from "./rules/new_mission";
 import Validator from "../../lib/validations/validator";
 import ErrorBox from "../../components/ui/ErrorBox";
+import { MdContentCopy, MdLink } from "react-icons/md";
 
 dayjs.locale('fr');
 dayjs.extend(utc);
@@ -91,31 +92,43 @@ function Header({loading, mission, activeTab, setActiveTab, editMode, setEditMod
                 loading ?
                 <></>:
                 <>
-                    <h2 className={`roboto-medium text-blue-focus text-[24px]`}>{mission.name}</h2>
-                    <div className="flex items-center gap-4 mt-4">
-                        <Chip label={statusDisplayable[mission.status]} className={`roboto-medium border! ${statusThemes[mission.status].text + ' ' + statusThemes[mission.status].bg + ' ' + statusThemes[mission.status].border}`} />
+                    <div className={``}>
+                        <Breadcrumbs className={`ps-0!`}>
                         {
-                            activeTab === 'overview' && !editMode &&
-                            <Button onClick={()=>setEditMode(!editMode)} sx={{
-                                textTransform: "none",
+                            ['Home', 'Missions'].map((path)=>(
+                                <Link key={path} color='neutral' href={'#'}>
+                                    {path}
+                                </Link>
+                            ))
 
-                            }} className={`bg-blue-main text-white! h-[30px]`}>
-                                Edit
-                            </Button>
                         }
-                    </div>
-
-                    <div className={`flex mt-10 items-center gap-3`}>
-                        {
-                            tabs.map((tab, index)=>(
+                            <Typography>
+                                {
+                                    mission.name
+                                }
+                            </Typography>
+                        </Breadcrumbs>
+                        <div className={`mt-4 flex items-center`}>
+                            <div className={`w-[65%] text-wrap!`}>
+                                <h1 className={`roboto-semibold text-[27px] wrap-break-word`}>{mission.name}</h1>
+                            </div>
+                            <div className={``}>
                                 <Button sx={{
                                     textTransform: 'none'
-                                }} onClick={()=>setActiveTab(tab.value)}
-                                variant='text' key={index} className={`pb-2 pt-2 cursor-pointer  rounded-none! text-[#8b8b8b]! roboto-medium transition-colors duration-200 ease-in-out text-[15px] ps-3 pe-3 flex items-center justify-center ${tab.value === activeTab ? 'text-[#02616b]! border-[#02616b]! border-b-2!': ' hover:text-[#02616b]!'}`}>
-                                    {tab.displayed}
+                                }} className={`bg-blue-main text-white! h-[38px]`}>
+                                    Update mission
                                 </Button>
-                            ))
-                        }
+                            </div>
+                        </div>
+                        <div className={`mt-5 border-b border-gray-100 flex items-center gap-2`}>
+                            {
+                                tabs.map((tab)=>(
+                                    <div onClick={()=>setActiveTab(tab.value)} key={tab.value} className={`px-3 py-3 roboto border-b-2 cursor-pointer border-transparent ${activeTab === tab.value ? 'border-[#01406c]! bg-[#01406c07] text-blue-main': 'hover:bg-[#01406c07]'}`}>
+                                        {tab.displayed}
+                                    </div>
+                                ))
+                            }
+                        </div>
                     </div>
                 </>
             }
@@ -280,154 +293,112 @@ const MissionContent = ({mission, setMission, editMode, setEditMode, activeTab})
         setEditMode(false);
     }
 
+    // const {id} = useParams();
+
+    const missionLevelBrief = "Define the complexity and expected experience for this mission. This sets the expectation for student applicants";
+
     return (
-        <div className={``}>
-            <div className={`w-full xl:w-[45%]`}>
-                {
-                    editMode &&
-                    <FormControl className="mb-5">
-                        <FormLabel className={`roboto-medium text-[17px]! text-blue-focus`}>Name</FormLabel>
-                        <Input value={editMission.name} onChange={handleChange} name="name" />
-                        {
-                            errors.name && <ErrorBox content={errors.name} />
-                        }
-                    </FormControl>
-                }
-                <h5 className={`roboto-medium text-[17px] text-blue-focus`}>Description</h5>
-                {
-                    editMode ?
-                    <div>
-                        <Textarea minRows={7} value={editMission.description} onChange={handleChange} name="description" />
-                        {
-                            errors.description && <ErrorBox content={errors.description} />
-                        }
-                    </div>:
-                    <p className={`roboto-light mt-4`}>{mission.description}</p>
-                
-                }
-            </div>
-            <div className={`mt-7 xl:w-[45%]`}>
-                <h5 className={`text-[17px] text-blue-focus roboto-medium`}>Role</h5>
-                {
-                    !editMode ?
-                    <>
-                        <p className={`mt-1 roboto-light text-[15px]`}>{mission.role.title}</p>
-                        <div className={`flex mt-3 flex-wrap gap-5`}>
+        <div className={`grid grid-cols-12 gap-3`}>
+            <div className={`col-span-12 md:col-span-6 xl:col-span-8`}>
+                <div className={`py-4 px-5 rounded-2xl bg-white shadow-sm`}>
+                    <FormLabel className={`roboto-medium text-[18px]!`}>
+                        Mission Level
+                    </FormLabel>
+                    <p className={`roboto text-gray-500 text-[16px] mt-3`}>
+                        {missionLevelBrief}
+                    </p>
+                    <div className={`mt-3`}>
+                        <Select value={'Apprentice'}>
                             {
-                                labelSkillsToRaw(editMission.role.skills).map((skill, index)=>(
-                                    <Chip label={skill} key={index} className={`roboto-light`} />
+                                ['Rookie', 'Apprentice', 'Intermediate', 'Challenger', 'Expert', 'Master', 'Senior'].map((level)=>(
+                                    <Option value={level}>
+                                        {level}
+                                    </Option>
                                 ))
                             }
-                        </div>
-                    </>:
-                    <div className="mt-3">
-                        <div>
-                            <Input value={editMission.role.title} onChange={(e)=>{
-                                let roleTMP = editMission.role;
-                                roleTMP.title = e.target.value;
-                                setEditMission({
-                                    ...editMission,
-                                    ['role']: roleTMP
-                                })
-                            }} className="h-[45px]" />
-                            {
-                                errors.title && <ErrorBox content={errors.title} />
-                            }
-                        </div>
-                        <div>
-                            <Autocomplete
-                                multiple
-                                placeholder="Select skills"
-                                options={skills}
-                                value={editMission.role.skills}
-                                onChange={(e, newSkills)=>{
-                                    let roleTMP = editMission.role;
-                                    roleTMP.skills = newSkills
-                                    setEditMission({
-                                        ...editMission,
-                                        ['role']: roleTMP
-                                    })
-                                }}
-                                className={`mt-4 h-[45px]`}
-                            />
-                            {
-                                errors.skills && <ErrorBox content={errors.skills} />
-                            }
-                        </div>
-                    </div>
-                }
-            </div>
-            <div className={`mt-7`}>
-                <div className={`flex items-start gap-3`}>
-                    <FaCalendar className={`text-gray-main mt-1 text-lg`}/>
-                    <div className={``}>
-                        <p className={`roboto-light text-[14px]`}>Start date</p>
-                        {
-                            editMode ?
-                            <div>
-                                <Input type='date' value={editMission.start_date} name="start_date" onChange={handleChange} className="mt-2" />
-                                {
-                                    errors.start_date && <ErrorBox content={errors.start_date} />
-                                }
-                            </div>:
-                            <strong className={`mt-2 text-[15px] font-normal roboto-medium text-blue-focus`}>{formatDate(mission.start_date)}</strong>
-                        }
+                        </Select>
                     </div>
                 </div>
-                <div className={`flex items-start gap-3 mt-4`}>
-                    <FaCalendar className={`text-gray-main mt-1 text-lg`}/>
-                    <div className={``}>
-                        <p className={`roboto-light text-[14px]`}>Due date</p>
-                        {
-                            editMode ?
-                            <div>
-                                <Input type='date' value={editMission.deadline} name="deadline" onChange={handleChange} className="mt-2" />
-                                {
-                                    errors.deadline && <ErrorBox content={errors.deadline} />
-                                }
-                            </div>:
-                            <strong className={`mt-2 text-[15px] font-normal roboto-medium text-blue-focus`}>{formatDate(mission.deadline)}</strong>
-                        }
+                <div className={`py-4 px-5 rounded-2xl bg-white shadow-sm mt-5`}>
+                    <div className={`flex items-center`}>
+                        <FormLabel className={`roboto-medium text-[18px]!`}>
+                            Detailed Description
+                        </FormLabel>
+                    </div>
+                    <div className={`mt-5`}>
+                        <p className={`roboto-light`}>
+                            {mission.description}
+                        </p>
                     </div>
                 </div>
+                <div className={`py-4 px-5 rounded-2xl bg-white shadow-sm mt-5`}>
+                    <FormLabel className={`roboto-medium text-[18px]!`}>
+                        Render link
+                    </FormLabel>
+                    <p className={`mt-3 roboto text-gray-500`}>
+                        {mission.render_link}
+                    </p>
+                </div>
             </div>
-            <div className={`xl:w-[45%] mt-7`}>
-                {
-                    editMode ?
-                    <div>
-                        <ImageInput defaultLabel={editMission.picture} ID={'edit-picture'} setImage={setPicture} className="w-full cursor-pointer md:w-[80%] lg:w-[65%] xl:w-[50%]" />
+
+            <div className={`col-span-12 md:col-span-6 xl:col-span-4`}>
+                <div className={`bg-white py-4 px-5 shadow-sm rounded-2xl`}>
+                    <FormLabel className={`roboto-medium text-[18px]!`}>
+                        Status
+                    </FormLabel>
+                    <Select value={'Not started'} className={`mt-3`}>
                         {
-                            errors.picture && <ErrorBox content={errors.picture} />
+                            ['Not started', 'In progress', 'Completed'].map((value)=>(
+                                <Option key={value}>
+                                    {value}
+                                </Option>
+                            ))
                         }
-                    </div>:
-                    <img src={pictureURL} alt="mission pic" className={`w-full md:w-[80%] lg:w-[65%] xl:w-[50%]`} />
-                }
-            </div>
-            {
-                mainError && <ErrorBox content={mainError} className="mt-7" />
-            }
-            <div className={`flex mt-4 mb-7 gap-4 items-center justify-end w-full md:w-[80%] lg:w-[65%] xl:w-[50%]`}>
-                {
-                    !loading && editMode &&
-                    <Button onClick={handleCancel} sx={{
-                        textTransform: 'none'
-                    }} variant='outlined' className={`w-[100px] h-[38px] text-blue-main`}>
-                        Cancel
-                    </Button>
-                }
-                {
-                    editMode && 
-                    <Button onClick={updateHandler} disabled={loading} sx={{
-                        textTransform: 'none'
-                    }} className={`w-[100px] h-[38px] bg-blue-main text-white! roboto-medium`}>
-                        {
-                            loading ?
-                            <CircularProgress size={16} sx={{
-                                color: 'white'
-                            }} />:<>Update</>
-                        }
-                    </Button>
-                }
+                    </Select>
+                </div>
+
+                <div className={`bg-white py-4 mt-5 px-4 shadow-sm rounded-2xl`}>
+                    <h5 className={`roboto-medium text-[18px]!`}>
+                        Timeline
+                    </h5>
+                    <div className={`mt-4`}>
+                        <FormControl className={``}>
+                            <FormLabel className={`roboto text-[16px]! text-gray-600!`}>Start date</FormLabel>
+                            <Input type='date' value={mission.start_date} />
+                        </FormControl>
+                        <FormControl className={`mt-5`}>
+                            <FormLabel className={`roboto text-gray-600! text-[16px]!`}>Deadline</FormLabel>
+                            <Input type='date' value={mission.deadline} />
+                        </FormControl>
+                    </div>
+                </div>
+
+                <div className={`bg-white py-4 mt-5 px-4 shadow-sm rounded-2xl`}>
+                    <FormLabel className={`text-[18px]! roboto-medium`}>Required skills</FormLabel>
+                    <div className={`my-5 flex flex-wrap gap-3`}>
+                        <Autocomplete
+                            multiple
+                            value={rawSkillsToLabels(['C++', 'C#'])}
+                            options={rawSkillsToLabels(['C++', 'C#', 'Raylib'])}
+                            placeholder="Select skills"
+                        />
+                    </div>
+                </div>
+
+                <div className={`bg-white py-4 mt-5 px-4 shadow-sm rounded-2xl`}>
+                    <div className={`flex items-center gap-2`}>
+                        <MdLink className={`text-[20px]`}/>
+                        <FormLabel className={`text-[18px]! roboto-medium`}>Public Link</FormLabel>
+                    </div>
+                    <div className={`my-5 flex items-center gap-3`}>
+                        <Input disabled value={`http://localhost:5000/company/missions/${id}`} className={``} />
+                        <div className={`px-[2.2px] py-px rounded-sm border border-gray-200`}>
+                            <IconButton>
+                                <MdContentCopy className={`text-[16px]`}/>
+                            </IconButton>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     )
@@ -588,9 +559,9 @@ function MissionDetails() {
     })
 
     return (
-        <div>
+        <div className={`bg-gray-50 min-h-screen`}>
             <CompanyNavigation current="missions" />
-            <Container className="mt-16 md:mt-20">
+            <Container className="pt-16 md:pt-20">
                 <Content loading={loading} mission={mission} setMission={setMission} />
             </Container>
         </div>

@@ -1,18 +1,28 @@
 import { useEffect, useState } from "react";
-import { Button, Container, FormControl, FormLabel, IconButton } from "@mui/material"
+import { Button, CircularProgress, Container, FormControl, FormLabel, IconButton } from "@mui/material"
 import logo from "../../assets/images/stm.png";
 import { Input, Textarea } from "@mui/joy";
 import { IoEyeOutline, IoEyeOffOutline } from "react-icons/io5";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { GoDot } from "react-icons/go";
 import { FaCheckCircle } from "react-icons/fa";
 import { PiStudentLight } from "react-icons/pi";
 import { IoBusinessOutline } from "react-icons/io5";
 import { IoIosArrowBack } from "react-icons/io";
+import { registerRules, companyValidationRules } from "./rules/register";
+import ImageInput from "../../components/ui/ImageInput";
+import ErrorBox from "../../components/ui/ErrorBox";
+import Validator from "../../lib/validations/validator";
+import Connection from "../../services/Connection";
+import { requestFailureHandler } from "../../lib/utils";
 
 function Register() {
 
     const [showPassword, setShowPassword] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [errors, setErrors] = useState({});
+    const [requestError, setRequestError] = useState(null);
+    const navigate = useNavigate();
 
     const togglePasswordVisibility = ()=>{
         setShowPassword(!showPassword);
@@ -27,6 +37,20 @@ function Register() {
         type: 'student'
     })
 
+    const [companyForm, setCompanyForm] = useState({
+        name: '',
+        description: "",
+        picture: null
+    })
+
+    const onCompanyFormReset = ()=>{
+        setCompanyForm({
+            name: "",
+            description: "",
+            picture: null
+        })
+    }
+
     const userTypeOptions = [
         {
             value: 'student',
@@ -39,6 +63,68 @@ function Register() {
             icon: IoBusinessOutline
         }
     ]
+
+    // Handlers
+
+    const handleChange = (event, setData)=>{
+        setData((prev)=>(
+            {
+                ...prev,
+                [event.target.name]: event.target.value
+            }
+        ))
+    }
+
+    const onFirstStepSubmit = ()=>{
+        setErrors({});
+        setRequestError(null);
+        const errorsTMP = Validator.validate(form, registerRules);
+        if (Object.keys(errorsTMP).length === 0) {
+            setStep('user_type');
+        } else {
+            setErrors(errorsTMP);
+        }
+    }
+
+
+    const onSubmitFailure = (error)=>{
+        requestFailureHandler(error, setRequestError, navigate, (data)=>{
+            if (data.email && data.email instanceof Array && data.email.length > 0 && data.email[0] === 'mission user with this email already exists.') {
+                setRequestError({
+                    fr: "Un compte existe déjà avec cette adresse e‑mail.",
+                    en: "An account already exists with this email address."
+                })
+            }
+        })
+    }
+
+    const onSubmitSuccess = (data)=>{
+        navigate('/login');
+    }
+
+    const onLastSubmit = ()=>{
+        const formData = new FormData();
+        const user_type = form.type;
+        const errorsTMP = Validator.validate(user_type === 'company' ? companyForm: {}, user_type === 'company' ? companyValidationRules: {});
+        setErrors({});
+        setRequestError(null);
+
+        if (Object.keys(errorsTMP).length === 0) {
+            formData.append('username', form.username);
+            formData.append('email', form.email);
+            formData.append('password', form.password);
+            formData.append('user_type', form.type);
+            if (user_type === "company") {
+                formData.append('name', companyForm.name);
+                formData.append('description', companyForm.description);
+                formData.append('picture', companyForm.picture);
+            }
+            Connection.post('auth/register/', formData, onSubmitSuccess, onSubmitFailure, setLoading);
+        } else {
+            setErrors(errorsTMP);
+        }
+
+    }
 
     useEffect(()=>{
         document.title = "Register - STM"
@@ -60,34 +146,46 @@ function Register() {
                         <div>
                             <FormControl className={`w-full mt-5!`}>
                                 <FormLabel className={`text-[19px]! roboto`}>Email address</FormLabel>
-                                <Input placeholder="Enter your email" type='email' className={`mt-1 h-[45px] roboto`}/>
+                                <Input placeholder="Enter your email" type='email' name='email' onChange={(e)=>handleChange(e, setForm)} value={form.email} className={`mt-1 h-[45px] roboto`}/>
+                                {
+                                    errors.email && <ErrorBox content={errors.email} />
+                                }
                             </FormControl>
                             <FormControl className={`w-full mt-5!`}>
                                 <FormLabel className={`text-[19px]! roboto`}>Username</FormLabel>
-                                <Input placeholder="Enter your username" className={`mt-1 h-[45px] roboto`}/>
+                                <Input placeholder="Enter your username" name="username" onChange={(e)=>handleChange(e, setForm)} value={form.username} className={`mt-1 h-[45px] roboto`}/>
+                                {
+                                    errors.username && <ErrorBox content={errors.username}/>
+                                }
                             </FormControl>
                             <FormControl className={`w-full mt-5!`}>
                                 <FormLabel className={`text-[19px]! roboto`}>Password</FormLabel>
-                                <Input placeholder="Enter your password" type={showPassword ? 'text': 'password'} className={`mt-1 h-[45px] roboto`} endDecorator={
+                                <Input placeholder="Enter your password" type={showPassword ? 'text': 'password'} name="password" onChange={(e)=>handleChange(e, setForm)} value={form.password} className={`mt-1 h-[45px] roboto`} endDecorator={
                                     <IconButton onClick={()=>togglePasswordVisibility()}>
                                         {
                                             showPassword ? <IoEyeOffOutline className={``}/>: <IoEyeOutline className={``} />
                                         }
                                     </IconButton>
                                 } />
+                                {
+                                    errors.password && <ErrorBox content={errors.password} />
+                                }
                             </FormControl>
                             <FormControl className={`w-full mt-5!`}>
                                 <FormLabel className={`text-[19px]! roboto`}>Password confirmation</FormLabel>
-                                <Input placeholder="Confirm your password" type={showPassword ? 'text': 'password'} className={`mt-1 h-[45px] roboto`} endDecorator={
+                                <Input placeholder="Confirm your password" type={showPassword ? 'text': 'password'} name="confirm_password" onChange={(e)=>handleChange(e, setForm)} value={form.confirm_password} className={`mt-1 h-[45px] roboto`} endDecorator={
                                     <IconButton onClick={()=>togglePasswordVisibility()}>
                                         {
                                             showPassword ? <IoEyeOffOutline className={``}/>: <IoEyeOutline className={``} />
                                         }
                                     </IconButton>
                                 } />
+                                {
+                                    errors.confirm_password && <ErrorBox content={errors.confirm_password} />
+                                }
                             </FormControl>
                             <div className="mt-6">
-                                <Button onClick={()=>setStep('user_type')} className="bg-blue-main text-white! roboto-medium h-[50px] w-full">
+                                <Button onClick={onFirstStepSubmit} className="bg-blue-main text-white! roboto-medium h-[50px] w-full">
                                     Continue
                                 </Button>
                             </div>
@@ -110,6 +208,9 @@ function Register() {
                                     {
                                         userTypeOptions.map((type, index)=>(
                                             <div onClick={()=>{
+                                                if (type.value === 'student') {
+                                                    onCompanyFormReset();
+                                                }
                                                 setForm({
                                                     ...form,
                                                     ['type']: type.value
@@ -134,17 +235,46 @@ function Register() {
                                 <div className={``}>
                                     <FormControl className={`w-full mt-5!`}>
                                         <FormLabel className={`text-[19px]! roboto`}>Company name</FormLabel>
-                                        <Input placeholder="Enter your company name" className={`mt-1 h-[45px] roboto`}/>
+                                        <Input placeholder="Enter your company name" name="name" onChange={(e)=>handleChange(e, setCompanyForm)} value={companyForm.name} className={`mt-1 h-[45px] roboto`}/>
+                                        {
+                                            errors.name && <ErrorBox content={errors.name} />
+                                        }
                                     </FormControl>
                                     <FormControl className={`w-full mt-5!`}>
                                         <FormLabel className={`text-[19px]! roboto`}>Description</FormLabel>
-                                        <Textarea minRows={5} placeholder="Enter company description" className={`mt-1 roboto`}/>
+                                        <Textarea  minRows={5} placeholder="Enter company description" name="description" onChange={(e)=>handleChange(e, setCompanyForm)} value={companyForm.description} className={`mt-1 roboto`}/>
+                                        {
+                                            errors.description && <ErrorBox content={errors.description}/>
+                                        }
+                                    </FormControl>
+                                    <FormControl className={`w-full mt-5!`}>
+                                        <FormLabel className={`text-[19px]! roboto`}>Company picture</FormLabel>
+                                        <ImageInput setImage={(value)=>{
+                                            setCompanyForm((prev)=>(
+                                                value ?
+                                                {...prev, ['picture']: value}: {...prev}
+                                            ))
+                                        }} ID={'company-pic'} className={`w-[250px] border border-gray-200 rounded-md mt-2!`} />
+                                        {
+                                            errors.picture && <ErrorBox content={errors.picture} />
+                                        }
                                     </FormControl>
                                 </div>
                             }
 
                             <div className={`mt-5`}>
-                                <Button className={`h-[50px] w-full bg-blue-main text-white! roboto`}>Sign up</Button>
+                                {
+                                    requestError && <ErrorBox content={requestError} />
+                                }
+                                <Button onClick={onLastSubmit} disabled={loading} className={`h-[50px] w-full bg-blue-main text-white! roboto`}>
+                                    {
+                                        loading ?
+                                        <CircularProgress size={19} sx={{
+                                            color: 'white'
+                                        }}/>:
+                                        <>Sign up</>
+                                    }
+                                </Button>
                             </div>
                         </div>
                     }
