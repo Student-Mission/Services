@@ -4,34 +4,32 @@ from django.db import transaction
 from student.models import Student
 from company.models import Company
 from django.contrib.auth.hashers import check_password
+from student.utils import make_file
 
 class RegisterSerializer(serializers.ModelSerializer):
     name = serializers.CharField(max_length=50, required=False)
     description = serializers.CharField(required=False)
-    picture_url = serializers.CharField(required=False)
+    picture = serializers.ImageField(required=False)
 
     class Meta:
         model = MissionUser
-        fields = ['username', 'email', 'password', 'user_type', 'name', 'description', 'picture_url']
+        fields = ['username', 'email', 'password', 'user_type', 'name', 'description', 'picture']
         extra_kwargs = {
             'password': {'write_only': True}
         }
 
     def validate(self, data: dict):
+        data = super().validate(data)
         user_type = data.get('user_type')
         email = data.get('email')
         username = data.get('username')
         
-        users = MissionUser.objects.filter(email=email, username=username)
+        users = MissionUser.objects.filter(email=email)
         if (users.exists()):
-            user = users.first()
-            if (user.email == email):
-                raise serializers.ValidationError({'email': 'account with this email exists'})
-            else:
-                raise serializers.ValidationError({'username': 'account with this username exists'})
-
+            raise serializers.ValidationError({'email': 'account with this email exists'})
+            
         if (user_type == 'company'):
-            for field in ['name', 'description', 'picture_url']:
+            for field in ['name', 'description', 'picture']:
                 if not data.get(field):
                     raise serializers.ValidationError({field: f'{field} field is required'})
         if (user_type not in ['company', 'student']):
@@ -59,7 +57,7 @@ class RegisterSerializer(serializers.ModelSerializer):
                 user=user,
                 name=validated_data.pop('name'),
                 description=validated_data.pop('description'),
-                picture_url=validated_data.pop('picture_url')
+                picture=validated_data.pop('picture')
             )
         return user
         
@@ -68,6 +66,7 @@ class LoginSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
 
     def validate(self, data: dict):
+        data = super().validate(data)
         email = data.get('email')
         password = data.get('password')
 
@@ -79,6 +78,9 @@ class LoginSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({'detail': 'Invalid credentials'})
         data['user'] = user
         return data
+    class Meta:
+        model = MissionUser
+        fields = ['email', 'password']
 
 class SecuritySerializer(serializers.ModelSerializer):
     old_password = serializers.CharField(write_only=True)

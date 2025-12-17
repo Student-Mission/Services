@@ -3,12 +3,14 @@ from user_auth.models import MissionUser
 from student.models import Student
 from django.contrib.postgres.fields import ArrayField
 import uuid
+from api.utils import rename_upload
+
 
 class Company(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, unique=True)
     name = models.CharField(max_length=50, unique=True)
     description = models.TextField()
-    picture_url = models.TextField()
+    picture = models.ImageField(verbose_name='Company picture', upload_to=rename_upload)
     is_active = models.BooleanField(default=False)
     user = models.OneToOneField(MissionUser, on_delete=models.CASCADE, related_name='company')
 

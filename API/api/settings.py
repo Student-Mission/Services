@@ -52,7 +52,9 @@ INSTALLED_APPS = [
     'django.contrib.postgres',
     'user_auth',
     'student',
-    'company'
+    'company',
+    'mission_admin',
+    'drf_spectacular'
 ]
 
 MIDDLEWARE = [
@@ -83,6 +85,8 @@ TEMPLATES = [
         },
     },
 ]
+
+AUTH_USER_MODEL = 'user_auth.MissionUser'
 
 WSGI_APPLICATION = 'api.wsgi.application'
 
@@ -145,6 +149,7 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
 
 # Simple jwt
@@ -154,4 +159,14 @@ SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=15),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
     # 'SIGNING_KEY': 'your_strong_secret_key_here', # It's recommended to use a key independent from Django's SECRET_KEY
+}
+
+# Spectacular
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Student Mission API',
+    'DESCRIPTION': 'Platform to gather students and companies',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+    'COMPONENT_SPLIT_REQUEST': True
+    # OTHER SETTINGS
 }

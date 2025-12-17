@@ -1,0 +1,309 @@
+openapi: 3.0.3
+info:
+  title: Student Mission API
+  version: 1.0.0
+  description: Platform to gather students and companies
+paths:
+  /auth/change-password:
+    put:
+      operationId: auth_change_password_update
+      description: Met à jour les paramètres de sécurité de l'utilisateur connecté.
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Security'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Security'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Security'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+              examples:
+                Succès:
+                  value:
+                    msg: security successfully updated
+          description: ''
+  /auth/login/:
+    post:
+      operationId: auth_login_create
+      description: Login and get JWT tokens.
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Login'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Login'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Login'
+        required: true
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /auth/refresh/:
+    post:
+      operationId: auth_refresh_create
+      tags:
+      - auth
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /auth/register/:
+    post:
+      operationId: auth_register_create
+      description: New user signup.
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Register'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Register'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Register'
+        required: true
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+          description: ''
+  /student/dashboard/:
+    get:
+      operationId: student_dashboard_retrieve
+      description: Docstring for Dashboard
+      tags:
+      - student
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /student/missions/:
+    get:
+      operationId: student_missions_retrieve
+      description: Docstring for Missions
+      tags:
+      - student
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /student/missions/{uuid}/:
+    get:
+      operationId: student_missions_retrieve_2
+      description: Docstring for MissionDetails
+      parameters:
+      - in: path
+        name: uuid
+        schema:
+          type: string
+        required: true
+      tags:
+      - student
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /student/profile/:
+    get:
+      operationId: student_profile_retrieve
+      description: Docstring for Profile
+      tags:
+      - student
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+    put:
+      operationId: student_profile_update
+      description: Docstring for Profile
+      tags:
+      - student
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /student/profile/add-skill/:
+    post:
+      operationId: student_profile_add_skill_create
+      description: Docstring for AddSkill
+      tags:
+      - student
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /student/profile/kyc/:
+    post:
+      operationId: student_profile_kyc_create
+      description: Docstring for ManageKYC
+      tags:
+      - student
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /student/profile/skills/make-test/:
+    post:
+      operationId: student_profile_skills_make_test_create
+      description: Docstring for MakeTest
+      tags:
+      - student
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /student/profile/skills/tests/{uuid}/:
+    get:
+      operationId: student_profile_skills_tests_retrieve
+      description: Docstring for TestManagement
+      parameters:
+      - in: path
+        name: uuid
+        schema:
+          type: string
+        required: true
+      tags:
+      - student
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+    put:
+      operationId: student_profile_skills_tests_update
+      description: Docstring for TestManagement
+      parameters:
+      - in: path
+        name: uuid
+        schema:
+          type: string
+        required: true
+      tags:
+      - student
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+components:
+  schemas:
+    Login:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          writeOnly: true
+      required:
+      - email
+      - password
+    Register:
+      type: object
+      properties:
+        username:
+          type: string
+          maxLength: 30
+        email:
+          type: string
+          format: email
+          maxLength: 200
+        password:
+          type: string
+          writeOnly: true
+          maxLength: 128
+        user_type:
+          $ref: '#/components/schemas/UserTypeEnum'
+        name:
+          type: string
+          maxLength: 50
+        description:
+          type: string
+        picture_url:
+          type: string
+      required:
+      - email
+      - password
+      - user_type
+      - username
+    Security:
+      type: object
+      properties:
+        old_password:
+          type: string
+          writeOnly: true
+        new_password:
+          type: string
+          writeOnly: true
+          minLength: 7
+      required:
+      - new_password
+      - old_password
+    UserTypeEnum:
+      enum:
+      - student
+      - company
+      - admin
+      - support
+      - developer
+      type: string
+      description: |-
+        * `student` - Student
+        * `company` - Company
+        * `admin` - Admin
+        * `support` - Support
+        * `developer` - Developer
+  securitySchemes:
+    jwtAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
