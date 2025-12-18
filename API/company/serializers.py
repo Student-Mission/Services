@@ -144,4 +144,9 @@ class CompanyUserProfileSerializer(serializers.ModelSerializer):
             return None
         kyc = getattr(company, 'kyc')
         return CompanyKYCSerializer(kyc).data
-    
+
+class MissionCardSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Mission
+        fields = ['uuid', 'name', 'description', 'level', 'skills', 'status', 'start_date']

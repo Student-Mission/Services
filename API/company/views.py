@@ -11,7 +11,7 @@ from django.db.models import Q
 from django.utils import timezone
 from datetime import datetime
 from .utils import get_applications_rate, get_missions_per_month
-from .serializers import CompanyUserProfileSerializer, AccountSerializer, CompanyKYCSerializer
+from .serializers import CompanyUserProfileSerializer, AccountSerializer, CompanyKYCSerializer, MissionCardSerializer
 from rest_framework.parsers import FormParser, MultiPartParser
 class Dashboard(APIView):
     permission_classes = [IsAuthenticated, IsCompany]
