@@ -25,13 +25,15 @@ class Profile(APIView):
             'profile': profile
         })
 
-    def put(self, request: Request):
+    def patch(self, request: Request):
         serializer = StudentProfileEditSerializer(data=request.data, instance=request.user)
         if (not serializer.is_valid()):
             return Response(serializer.errors, status=400)
         serializer.save()
+        profile = StudentProfileDisplaySerializer(request.user).data
         return Response({
-            'msg': 'successfully updated'
+            'msg': 'successfully updated',
+            'profile': profile
         })
 
 class EditSkills(APIView):
@@ -44,16 +46,16 @@ class EditSkills(APIView):
     def delete(self, request: Request):
         pass
 
-class AddSkill(APIView):
+class AddSkills(APIView):
     """
     Docstring for AddSkill
     """
     permission_classes = [IsAuthenticated, IsStudent]
 
-    def post(self, request: Request):
+    def put(self, request: Request):
         
         user = request.user
-        serializer = AddSkillSerializer(request.data, context={
+        serializer = AddSkillSerializer(data=request.data, context={
             'request': request
         })
         if (not serializer.is_valid()):

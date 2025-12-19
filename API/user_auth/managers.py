@@ -1,4 +1,5 @@
 from django.contrib.auth.base_user import BaseUserManager
+# from django.contrib.auth.models import PermissionsMixin
 
 class MissionUserManager(BaseUserManager):
     use_in_migrations = True
@@ -23,7 +24,7 @@ class MissionUserManager(BaseUserManager):
     def create_superuser(self, username, email=None, password=None, **extra_fields):
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
-        extra_fields.setdefault('role', 'developer')
+        extra_fields.setdefault('user_type', 'developer')
         
         if extra_fields.get('is_staff') is not True:
             raise ValueError('Le superutilisateur doit avoir is_staff=True.')

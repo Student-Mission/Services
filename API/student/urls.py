@@ -10,7 +10,7 @@ urlpatterns = [
 
     # Profile
     path('profile/', profile.Profile.as_view()),
-    path('profile/add-skill/', profile.AddSkill.as_view()),
+    path('profile/skills/', profile.AddSkills.as_view()),
     path('profile/kyc/', profile.ManageKYC.as_view()),
     path('profile/skills/make-test/', profile.MakeTest.as_view()),
     path('profile/skills/tests/<str:uuid>/', profile.TestManagement.as_view())

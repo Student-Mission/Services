@@ -1,9 +1,11 @@
 from rest_framework import serializers
-from company.models import Mission, Company
+from company.models import Mission, Company, Role
 from user_auth.models import MissionUser
 from mission_admin.models import Skill
 from .models import SkillWrapper, StudentKYC, SkillTest
 from .utils import compute_skill_rate
+from django.db import transaction
+from django.db.models import Q
 
 class MissionCardSerializer(serializers.ModelSerializer):
 
@@ -21,6 +23,34 @@ class MissionCardSerializer(serializers.ModelSerializer):
             'name': company.name,
             'picture': company.picture_url,
             'uuid': company.uuid
+        }
+
+class MissionHistoryCardSerializer(serializers.ModelSerializer):
+    
+    company = serializers.SerializerMethodField()
+    mission = serializers.SerializerMethodField()
+    class Meta:
+        model = Role
+        fields = ['company', 'mission']
+    
+    def get_company(self, obj: Role):
+        company = obj.mission.company
+        if (not company):
+            return {
+                'name': 'Unknown',
+                'picture': 'none'
+            }
+        return {
+            'name': company.name,
+            'picture': company.picture.url
+        }
+    
+    def get_mission(self, obj: Role):
+        mission = obj.mission
+        return {
+            'name': mission.name,
+            'deadline': mission.deadline,
+            'status': mission.status
         }
 
 class MissionCompanyDetails(serializers.ModelSerializer):
@@ -67,7 +97,7 @@ class StudentProfileDisplaySerializer(serializers.ModelSerializer):
             'username': obj.username,
             'email': obj.email,
             'bio': obj.student.bio,
-            'picture_url': obj.picture_url
+            'picture': obj.picture.url if (obj.picture) else 'none'
         }
 
     def get_details(self, obj: MissionUser):
@@ -93,84 +123,92 @@ class StudentProfileDisplaySerializer(serializers.ModelSerializer):
         }
 
 class StudentProfileEditSerializer(serializers.ModelSerializer):
-    bio = serializers.CharField(allow_null=True, max_length=500)
-    username = serializers.CharField(max_length=50, allow_null=False)
-    email = serializers.EmailField(max_length=200, allow_null=False)
-    picture_url = serializers.CharField(allow_null=False)
+    bio = serializers.CharField(allow_null=True, max_length=500, required=False)
+    username = serializers.CharField(max_length=50, allow_null=False, required=False)
+    email = serializers.EmailField(max_length=200, allow_null=False, required=False)
+    picture = serializers.ImageField(required=False)
+    remove_picture = serializers.BooleanField(required=False)
 
     class Meta:
         model = MissionUser
-        fields = ['picture_url', 'username', 'email', 'bio']
+        fields = ['picture', 'username', 'email', 'bio', 'remove_picture']
     
     def validate_email(self, value):
         users = MissionUser.objects.exclude(pk=self.instance.pk).filter(email=value)
 
         if (users.exists()):
-            raise serializers.ValidationError({'email': 'Email already used'})
+            raise serializers.ValidationError('Email already used')
         return value
     
+    # def validate_picture(self, value):
+    #     if (not value):
+    #         return None
+    #     if (isinstance(value, str) and value == 'none'):
+    #         return value
+    #     elif (isinstance(value, str) and value != 'none'):
+    #         raise serializers.ValidationError({'picture': 'Invalid email field'})
+    #     return value
+    
     def update(self, instance, validated_data: dict):
-        instance.username = validated_data.get('username')
-        instance.email = validated_data.get('email')
-        instance.picture_url = validated_data.get('picture_url')
-        instance.save()
+        remove_picture = validated_data.get('remove_picture')
+        with transaction.atomic():
+            instance.username = validated_data.get('username', instance.username)
+            instance.email = validated_data.get('email', instance.email)
+            picture = validated_data.get('picture', None)
+            if (picture):
+                instance.picture.delete(save=False)
+                instance.picture = picture
+            if ((not picture) and remove_picture):
+                instance.picture.delete(save=False)
+                instance.picture = None
+            
+            instance.save()
 
-        student_bio = validated_data.get('bio', None)
-        if (student_bio is not None):
-            student = instance.student
-            student.bio = student_bio
-            student.save()
+            student_bio = validated_data.get('bio', None)
+            if (student_bio is not None):
+                student = instance.student
+                student.bio = student_bio
+                student.save()
         return instance
 
-class AddSkillSerializer(serializers.ModelSerializer):
+class AddSkillSerializer(serializers.Serializer):
 
-    name = serializers.CharField()
+    skills = serializers.ListField(child=serializers.CharField(), allow_null=True)
 
-    class Meta:
-        model = SkillWrapper
-        fields = ['name']
     
-    def validate(self, data: dict):
-        data = super().validate(data)
-        name = data.get('name', None)
+    def validate_skills(self, names):
         
-        # Check field validity
-        if (name is None):
-            raise serializers.ValidationError({'name': 'name field required'})
-        
-        # Check if skill exists
-        try:
-            raw_skill = Skill.objects.get(name=name)
-        except Skill.DoesNotExist:
-            raise serializers.ValidationError({'detail': "invalid skill"})
-        
-        # Get context
-        request = self.context.get('request')
-        user = request.user
+        # Check if sended skills exist
+        existing_skills = Skill.objects.filter(name__in=names)
+        existing_names = set(existing_skills.values_list('name', flat=True))
 
-        # Check if skill were already added
-        if (SkillWrapper.objects.filter(skill=raw_skill, student=user.student).exists()):
-            raise serializers.ValidationError({'detail': 'skill already added'})
-        
-        return data
-    
+        invalid_names = set(names) - existing_names
+
+        if (invalid_names):
+            raise serializers.ValidationError("Invalid skills")
+        return existing_skills
+
     def create(self, validated_data: dict):
-        name = validated_data.pop('name')
         request = self.context.get('request')
-        user = request.user
+        requested_skills = validated_data.get('skills')
+        student = request.user.student
 
-        # Get raw skill
-        try:
-            raw_skill = Skill.objects.get(name=name)
-        except Skill.DoesNotExist:
-            pass
+        # Get skill ids student has
+        already_owned_ids = SkillWrapper.objects.filter(student=student, skill__in=requested_skills).values_list('skill_id', flat=True)
 
-        # Create skill wrapper
-        skill_wrapper = SkillWrapper.objects.create(
-            skill=raw_skill,
-            student=user.student
-        )
-        return skill_wrapper
+        # Get skill student don't have
+        skills_to_add = [
+            skill for skill in requested_skills
+            if not skill.id in already_owned_ids
+        ]
+
+        if skills_to_add:
+            with transaction.atomic():
+                new_skill_wrappers = [
+                    SkillWrapper(skill=skill, student=student) for skill in skills_to_add
+                ]
+                SkillWrapper.objects.bulk_create(new_skill_wrappers)
+        return student 
 
 class StudentProofSerializer(serializers.ModelSerializer):
 

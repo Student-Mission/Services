@@ -16,14 +16,14 @@ class MissionUser(AbstractBaseUser):
     uuid = models.UUIDField(default=uuid.uuid4, unique=True)
     username = models.CharField(max_length=30)
     email = models.EmailField(max_length=200, unique=True)
-    picture = models.ImageField(verbose_name='Profile picture', upload_to=rename_upload)
+    picture = models.ImageField(verbose_name='Profile picture', upload_to=rename_upload, null=True)
     # picture = models.TextField(null=True, blank=True, verbose_name='User profile picture')
     user_type = models.CharField(max_length=50, choices=USER_TYPES)
     date_joined = models.DateTimeField(auto_now_add=True, verbose_name="Date de création")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Date de mise à jour")
     password_changed = models.BooleanField(default=False)
 
-    REQUIRED_FIELDS = ["username", "role"]
+    REQUIRED_FIELDS = ["username", "user_type"]
     USERNAME_FIELD = "email"
 
     objects = MissionUserManager()
@@ -34,3 +34,9 @@ class MissionUser(AbstractBaseUser):
 
     def __str__(self):
         return self.username
+    
+    def has_perm(self, perm, obj=None):
+        return self.is_superuser
+
+    def has_module_perms(self, app_label):
+        return self.is_superuser

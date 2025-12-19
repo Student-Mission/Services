@@ -14,7 +14,7 @@ class NewMissionSerializer(serializers.ModelSerializer):
     company = serializers.SerializerMethodField()
     class Meta:
         model = Mission
-        fields = ['name', 'description', 'level', 'render_link', 'skills', 'start_date', 'deadline']
+        fields = ['name', 'description', 'level', 'render_link', 'skills', 'start_date', 'deadline', 'company']
 
 
     def validate(self, data: dict):

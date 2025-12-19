@@ -56,7 +56,7 @@ class CreateMission(APIView):
     permission_classes = [IsAuthenticated, IsCompany, IsValidatedCompany]
 
     def post(self, request: Request):
-        serializer = NewMissionSerializer(request.data, context={'request': request})
+        serializer = NewMissionSerializer(data=request.data, context={'request': request})
         if (not serializer.is_valid()):
             return Response(serializer.errors, status=400)
         serializer.save()

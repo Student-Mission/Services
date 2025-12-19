@@ -1,7 +1,7 @@
 from rest_framework.views import APIView
 from rest_framework.request import Request
 from rest_framework.response import Response
-from student.serializers import MissionCardSerializer, MissionDetailsSerializer
+from student.serializers import MissionCardSerializer, MissionDetailsSerializer, MissionHistoryCardSerializer
 from api.permissions import IsStudent, IsValidatedStudent
 from rest_framework.permissions import IsAuthenticated
 from company.models import Mission, Application
@@ -15,16 +15,23 @@ class Dashboard(APIView):
 
     def get(self, request: Request):
         user = request.user
+        student = user.student
+        
+        # Get profile
         profile = {
             'username': user.username,
-            'global_rate': 8.3,
-            'level': "Rookie",
-            'picture': 'none'
+            'global_rate': student.global_rate,
+            'level': student.level,
+            'picture': user.picture.url if user.picture else 'none'
         }
+        # Get recommended missions
+        recommended_missions = MissionCardSerializer(Mission.objects.filter(status='not_started', level=student.level)[:3], many=True).data
+        # Get history
+        history = MissionHistoryCardSerializer(student.roles.all()[:3], many=True).data
         return Response({
-            'missions': [],
+            'missions': recommended_missions,
             'profile': profile,
-            'current_missions': []
+            'current_missions': history
         })
 
 # Missions
