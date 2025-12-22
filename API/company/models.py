@@ -81,5 +81,5 @@ class Application(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=50, choices=STATUS, default='pending')
-    student = models.ForeignKey(Student, on_delete=models.SET_NULL, null=True, verbose_name='applications')
-    mission = models.ForeignKey(Mission, on_delete=models.CASCADE, verbose_name="applications")
+    student = models.ForeignKey(Student, on_delete=models.SET_NULL, null=True, verbose_name='applications', related_name='applications')
+    mission = models.ForeignKey(Mission, on_delete=models.CASCADE, verbose_name="applications", related_name='applications')

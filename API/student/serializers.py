@@ -62,9 +62,19 @@ class MissionCompanyDetails(serializers.ModelSerializer):
 class MissionDetailsSerializer(serializers.ModelSerializer):
 
     company = MissionCompanyDetails()
+    can_apply = serializers.SerializerMethodField()
     class Meta:
         model = Mission
-        exclude = ['student']
+        fields = '__all__'
+        read_only_fields = ['can_apply']
+    
+    def get_can_apply(self, obj: Mission):
+        user = self.context.get('request').user
+        student_applications = obj.applications.filter(student=user.student)
+        if (student_applications.exists()):
+            return False
+        return True
+    
 
 # Profile
 

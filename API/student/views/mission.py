@@ -6,6 +6,7 @@ from api.permissions import IsStudent, IsValidatedStudent
 from rest_framework.permissions import IsAuthenticated
 from company.models import Mission, Application
 from student.config import LEVELS
+from django.core.exceptions import ValidationError
 
 class Dashboard(APIView):
     """
@@ -56,7 +57,7 @@ class Missions(APIView):
         selected_levels = LEVELS[start_index:end_index+1]
 
         # Filter suggested missions
-        missions = Mission.objects.filter(status='not_started', level__in=selected_levels).exclude(application__student=user.student).select_related('company').order_by('?')[:30]
+        missions = Mission.objects.filter(status='not_started', level__in=selected_levels).exclude(applications__student=user.student).select_related('company').order_by('?')[:30]
         parsed_missions = MissionCardSerializer(missions, many=True).data
         return Response({
             'missions': parsed_missions
@@ -74,12 +75,14 @@ class MissionDetails(APIView):
     def get(self, request: Request, uuid):
         try:
             mission = Mission.objects.get(uuid=uuid)
-        except Mission.DoesNotExist:
+        except (Mission.DoesNotExist, ValidationError):
             return Response({
                 'detail': "mission not found"
             }, status=404)
         return Response({
-            'mission': MissionDetailsSerializer(mission).data
+            'mission': MissionDetailsSerializer(mission, context={
+                'request': request
+            }).data
         })
 
 class ApplyToMission(APIView):
@@ -89,15 +92,15 @@ class ApplyToMission(APIView):
 
     permission_classes = [IsAuthenticated, IsStudent, IsValidatedStudent]
 
-    def get(self, request: Request, uuid):
+    def post(self, request: Request, uuid):
         user = request.user
         try:
             mission = Mission.objects.get(uuid=uuid)
-        except Mission.DoesNotExist:
+        except (Mission.DoesNotExist, ValidationError):
             return Response({
                 'detail': "mission not found"
             }, status=404)
-        applications = Application.objects.filter(student=user.student)
+        applications = Application.objects.filter(student=user.student, mission=mission)
         if (applications.exists()):
             return Response({
                 'detail': 'Already applied to this mission'
