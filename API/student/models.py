@@ -3,6 +3,7 @@ from user_auth.models import MissionUser
 from mission_admin.models import Skill
 from django.utils import timezone
 import uuid
+from api.utils import document_rename_upload
 
 class Student(models.Model):
     LEVELS = (
@@ -29,7 +30,8 @@ class StudentKYC(models.Model):
     )
 
     title = models.CharField(max_length=100)
-    document_url = models.TextField()
+    # document_url = models.TextField()
+    document = models.FileField(null=True, upload_to=document_rename_upload)
     status = models.CharField(max_length=90, choices=KYC_STATUS, default='in_progress')
     submitted_at = models.DateField(auto_now_add=True)
     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='kycs')

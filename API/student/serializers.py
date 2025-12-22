@@ -72,7 +72,7 @@ class StudentKYCSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = StudentKYC
-        fields = ['title', 'document_url', 'status']
+        fields = ['title', 'document', 'status', 'submitted_at']
 
 class SkillWrapperSerializer(serializers.ModelSerializer):
 
@@ -214,7 +214,7 @@ class StudentProofSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = StudentKYC
-        fields = ['title', 'document_url']
+        fields = ['title', 'document']
     
     def create(self, validated_data):
         user = self.context.get('request').user
@@ -223,7 +223,7 @@ class StudentProofSerializer(serializers.ModelSerializer):
         # Create proof
         proof = StudentKYC.objects.create(
             title=validated_data.get('title'),
-            document_url=validated_data.get('document_url'),
+            document=validated_data.get('document'),
             student=user.student
         )
         return proof

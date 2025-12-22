@@ -79,8 +79,8 @@ class ManageKYC(APIView):
         # Check if student has pending proof
         if (StudentKYC.objects.filter(student=user.student, status='in_progress').exists()):
             return Response({
-                'detail': 'cannot add student proof'
-            }, status=403)
+                'detail': ['cannot add student proof']
+            }, status=400)
         
         # Check if student has a recent proof
         proofs = StudentKYC.objects.filter(student=user.student, status='validated').order_by('-submitted_at')
@@ -88,11 +88,13 @@ class ManageKYC(APIView):
             last_proof = proofs.first()
             if (last_proof.submitted_elapsed_time < 320):
                 return Response({
-                    'detail': 'cannot add student proof'
-                }, status=403)
+                    'detail': ['cannot add student proof']
+                }, status=400)
 
         # Validate and create proof
-        serializer = StudentProofSerializer(request.data)
+        serializer = StudentProofSerializer(data=request.data, context={
+            'request': request
+        })
 
         if (not serializer.is_valid()):
             return Response(serializer.errors, status=400)
