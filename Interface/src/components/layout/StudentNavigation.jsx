@@ -1,9 +1,13 @@
-import { Avatar, Container, IconButton } from "@mui/material";
+import { Avatar, CircularProgress, Container, IconButton } from "@mui/material";
 import logo from "../../assets/images/stm.png";
 import { Link } from "react-router-dom";
 import { IoSettingsOutline } from "react-icons/io5";
 import { FaRegBell } from "react-icons/fa6";
 import { GoBell } from "react-icons/go";
+import { useContext } from "react";
+import { GlobalContext } from "../../contexts/Global";
+
+const MEDIA_API = import.meta.env.VITE_MEDIA_API;
 
 function StudentNavigation() {
 
@@ -24,6 +28,7 @@ function StudentNavigation() {
             path: '/student/learn'
         }
     ]
+    const {profile, mainLoading} = useContext(GlobalContext);
 
     return (
         <div className={`fixed bg-white z-30 top-0 left-0 h-16 xl:h-20 w-full border-b border-gray-200`}>
@@ -49,9 +54,15 @@ function StudentNavigation() {
                     <Link to={'/student/alerts'}>
                         <GoBell className={`text-2xl text-gray-main`}/>
                     </Link>
-                    <Link to={'/student/profile'}>
-                        <Avatar src="none" alt="Abiola Shadow" className={`bg-blue-main`} />
-                    </Link>
+                    {
+                        mainLoading ?
+                        <CircularProgress size={18} sx={{
+                            color: '#01406c'
+                        }} />:
+                        <Link to={'/student/profile'}>
+                            <Avatar src={MEDIA_API + profile.picture} alt={profile.username} className={`bg-blue-main`} />
+                        </Link>
+                    }
                 </div>
                 <div className={``}>
 

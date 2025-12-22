@@ -7,6 +7,7 @@ import MissionFilterModal from "../../components/layout/MissionFilterModal";
 import Connection from "../../services/Connection";
 import { GlobalContext } from "../../contexts/Global";
 import { useNavigate } from "react-router-dom";
+import { requestFailureHandler } from "../../lib/utils";
 
 function Content({missions=[], loading}) {
 
@@ -15,31 +16,39 @@ function Content({missions=[], loading}) {
 
     return (
         <div className={`mt-20`}>
-            <div className={`flex items-center`}>
-                <Button onClick={()=>setShowFilter(true)} sx={{
-                    textTransform: 'none'
-                }} className={`bg-[#c9c9c9]! text-gray-main roboto`}>
-                    Filter
-                </Button>
-            </div>
-            <MissionFilterModal show={showFilter} onHide={()=>setShowFilter(false)} />
-            
             {
-                loading ?
-                <div className="mt-5 flex items-center justify-center">
-                    <CircularProgress size={20} sx={{
-                        color: '#01406c'
-                    }} />
+                missions.length === 0 ?
+                <div className={`w-full h-[200px] flex items-center justify-center`}>
+                    <h5 className={`roboto text-gray-500 text-[25px]`}>No mission posted yet.</h5>
                 </div>:
-                <div className={`mt-10 grid grid-cols-12 gap-4`}>
+                <>
+                    <div className={`flex items-center`}>
+                        <Button onClick={()=>setShowFilter(true)} sx={{
+                            textTransform: 'none'
+                        }} className={`bg-[#c9c9c9]! text-gray-main roboto`}>
+                            Filter
+                        </Button>
+                    </div>
+                    <MissionFilterModal show={showFilter} onHide={()=>setShowFilter(false)} />
+                    
                     {
-                        missions.map((mission, index)=>(
-                            <div key={index} className={`col-span-12 md:col-span-4 xl:col-span-3`}>
-                                <CompanyMissionCard mission={mission} />
-                            </div>
-                        ))
+                        loading ?
+                        <div className="mt-5 flex items-center justify-center">
+                            <CircularProgress size={20} sx={{
+                                color: '#01406c'
+                            }} />
+                        </div>:
+                        <div className={`mt-10 grid grid-cols-12 gap-4`}>
+                            {
+                                missions.map((mission, index)=>(
+                                    <div key={index} className={`col-span-12 md:col-span-4 xl:col-span-3`}>
+                                        <CompanyMissionCard mission={mission} />
+                                    </div>
+                                ))
+                            }
+                        </div>
                     }
-                </div>
+                </>
             }
         </div>
     )
@@ -53,22 +62,21 @@ function Missions() {
         fetchMissions();
     }, [])
 
-    const {setLogged} = useContext(GlobalContext);
+    const {setCompanyMissions, companyMissions} = useContext(GlobalContext);
     const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
+    const [requestError, setRequestError] = useState(null);
 
     const fetchMissions = ()=>{
-        Connection.get('business/missions/', (data)=>{
+        if (companyMissions && companyMissions.length > 0) {
+            setMissions(companyMissions);
+            return;
+        }
+        Connection.get('company/missions/', (data)=>{
             setMissions(data.missions);
+            setCompanyMissions(data.missions);
         }, (error)=>{
-            if (error.response) {
-                if (error.response.status === 401) {
-                    setLogged(false);
-                    navigate('/login');
-                }
-            } else {
-                alert('Network error');
-            }
+            requestFailureHandler(error, setRequestError, navigate);
         }, setLoading, true);
     }
 
@@ -135,7 +143,15 @@ function Missions() {
         <div>
             <CompanyNavigation current="missions" />
             <Container className="mt-16 md:mt-20">
-                <Content missions={missions} loading={loading} />
+                {
+                    !requestError ?
+                    <Content missions={missions} loading={loading} />:
+                    <div className={`h-[200px] w-full flex justify-center items-center`}>
+                        <h3 className={`roboto-semibold text-[23px] text-gray-500`}>
+                            {requestError.en}
+                        </h3>
+                    </div>
+                }
             </Container>
         </div>
     )

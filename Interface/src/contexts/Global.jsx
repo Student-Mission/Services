@@ -2,18 +2,20 @@ import { createContext, useEffect, useState } from "react";
 export const GlobalContext = createContext();
 import Connection from "../services/Connection";
 import { useNavigate } from "react-router-dom";
+import useCache from "../hooks/useCache";
 
 export const GlobalProvider = ({children})=>{
 
     const [skills, setSkills] = useState([]); // Available skills
     const [navExtended, setNavExtended] = useState(true); // True when sidebar is extended
+    const [companyMissions, setCompanyMissions] = useCache(40);
     const [mainLoading, setMainLoading] = useState(true); // True when client is fetching data in background
     const [profile, setProfile] = useState({
         username: '',
         email: '',
         bio: '',
         picture: 'none'
-    })
+    }) // User standard profile
     const [logged, setLogged] = useState(false);
     const navigate = useNavigate();
 
@@ -55,7 +57,7 @@ export const GlobalProvider = ({children})=>{
             navExtended, setNavExtended,
             profile, setProfile,
             mainLoading, setMainLoading,
-            logged, setLogged, skills, setSkills
+            logged, setLogged, skills, setSkills, companyMissions, setCompanyMissions
         }} >
             {children}
         </GlobalContext.Provider>

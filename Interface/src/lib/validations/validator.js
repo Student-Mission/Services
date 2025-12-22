@@ -281,6 +281,7 @@ class Validator {
 
             // Choices
             if (rule[field].choices && rule[field].choices.value instanceof Array ) {
+                console.log(`Choice field ${field}`)
                 if (form[field].length === 0) {
                     errors[field] = {
                         fr: `${rule[field].label} est requis`,

@@ -17,6 +17,7 @@ const skills = [
     {label: 'Go'},
     {label: 'Flutter'}
 ]
+const levelChoices = ['Rookie', 'Apprentice', 'Intermediate', 'Challenger', 'Expert', 'Master', 'Senior']
 
 const reFormatSkillsArray = ()=>{
   let newSkills = [];
@@ -54,38 +55,32 @@ const missionRules = {
     // Note : vérifier séparément que deadline >= start_date (cross-field)
   },
 
-  render_mode: {
-    required: { fr: "Le type de rendu est requis", en: "Render type is required" },
-    choices: ["onedrive", "github"]
-  },
-
   render_link: {
     // rendu conditionnel : requis seulement si render_mode est sélectionné — vérifier en logique métier
     required: { fr: "Le lien de rendu est requis", en: "Render link is required" },
     pattern: { value: "url", fr: "Lien invalide", en: "Invalid URL" },
     maxlength: { value: 500, fr: "Lien trop long", en: "URL too long" }
   },
-
-//   rate: {
-//     required: { fr: "Le tarif est requis", en: "Rate is required" },
-//     min: { value: 1, fr: "Le tarif minimum est 1", en: "Minimum rate is 1" },
-//     max: { value: 5, fr: "Le tarif maximum est 5", en: "Maximum rate is 5" }
-//   },
-
-//   "role.name": {
-//     required: { fr: "Le nom du rôle est requis", en: "Role name is required" },
-//     minlength: { value: 3, fr: "Le nom du rôle est trop court", en: "Role name is too short" },
-//     maxlength: { value: 60, fr: "Le nom du rôle est trop long", en: "Role name is too long" },
-//     pattern: { value: "spaced_name", fr: "Nom de rôle invalide", en: "Invalid role name" }
-//   },
-
-//   "role.skills": {
-//     required: { fr: "Sélectionnez au moins une compétence", en: "Select at least one skill" },
-//     choices: [
-//       "c++","java","c","figma","photoshop","javascript","html/css","rust",
-//       "python","react","vue","docker","docker compose","mysql","go","flutter"
-//     ]
-//   }
+  level: {
+    required: {
+      fr: "Le niveau minimum est requis",
+      en: "Minimum level is required"
+    },
+    choices: {
+      value: levelChoices,
+      fr: "Le niveau choisi est invalide",
+      en: "Selected level is invalid"
+    }
+  },
+  skills: {
+  label: 'Skills',
+  // required: { fr: "Sélectionnez au moins une compétence", en: "Select at least one skill" },
+  choices: {
+    value: reFormatSkillsArray(),
+    fr: 'Les compétences sélectionnées sont invalides',
+    en: 'Invalid skills'
+  }
+}
 };
 
 const rateRules = {

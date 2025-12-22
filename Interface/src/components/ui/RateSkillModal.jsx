@@ -4,15 +4,18 @@ import StarIcon from '@mui/icons-material/Star';
 import { FaArrowRight } from "react-icons/fa";
 
 
-function RateSkillModal({show, onHide, currentSkill='React'}) {
+function RateSkillModal({show, onHide, currentSkill}) {
 
     const brief = "Your current rating for this skill is based on your profile and previous evaluations";
-    const rate = 5.5;
+    // const rate = 5.5;
     
     const getPrecision = (_rate)=>{
+        if (_rate === 0) return 0.00;
         return (_rate - parseInt(_rate)).toPrecision(2);
     }
 
+    const rate = currentSkill && currentSkill.test_rate ? currentSkill.test_rate: 0;
+    console.log(`Rate skill ${rate}`)
     return (
         <Modal
             sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}
@@ -28,11 +31,11 @@ function RateSkillModal({show, onHide, currentSkill='React'}) {
                 }, borderRadius: 'md', p: 3, boxShadow: 'lg' }}
             >
                 <ModalClose variant='plain' />
-                <h3 className={`roboto-medium text-[23px] text-blue-focus`}>{currentSkill}</h3>
+                <h3 className={`roboto-medium text-[23px] text-blue-focus`}>{currentSkill?.name}</h3>
                 <p className={`roboto mt-4 text-gray-main text-[16px]`}>{brief}</p>
                 <div className={`mt-5`}>
                     <p className={`roboto`}>Current Level</p>
-                    <Rating max={10} readOnly value={rate} precision={getPrecision(rate)}
+                    <Rating max={10} readOnly value={rate} toPrecision={0.5}
                         emptyIcon={<StarIcon style={{ opacity: 0.55 }} fontSize="inherit" />}
                     />
                     <p className={`font-normal mt- text-[19px] roboto-medium text-sky`}>{rate}/10</p>
