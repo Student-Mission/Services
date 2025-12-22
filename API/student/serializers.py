@@ -15,14 +15,14 @@ class MissionCardSerializer(serializers.ModelSerializer):
         model = Mission
         fields = ['name', 'description', 'uuid', 'level', 'company']
 
-    def get_component(self, obj):
+    def get_company(self, obj):
         if (not hasattr(obj, 'company')):
             return {}
         company = getattr(obj, 'company')
         return {
             'name': company.name,
-            'picture': company.picture_url,
-            'uuid': company.uuid
+            'picture': company.picture.url,
+            'uuid': str(company.uuid)
         }
 
 class MissionHistoryCardSerializer(serializers.ModelSerializer):

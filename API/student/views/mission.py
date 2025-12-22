@@ -5,6 +5,7 @@ from student.serializers import MissionCardSerializer, MissionDetailsSerializer,
 from api.permissions import IsStudent, IsValidatedStudent
 from rest_framework.permissions import IsAuthenticated
 from company.models import Mission, Application
+from student.config import LEVELS
 
 class Dashboard(APIView):
     """
@@ -41,9 +42,24 @@ class Missions(APIView):
     """
     permission_classes = [IsAuthenticated, IsStudent]
     def get(self, request: Request):
-        missions = MissionCardSerializer(Mission.objects.filter(status='not_started')[:200], many=True).data
+        user = request.user
+
+        # Level management
+        current_level = user.student.level
+        try:
+            current_level_index = LEVELS.index(current_level)
+        except ValueError:
+            current_level = 'Rookie'
+            current_level_index = 0
+        start_index = current_level_index - 1 if current_level_index > 0 else 0
+        end_index = current_level_index + 1 if current_level_index < len(LEVELS) else len(LEVELS) - 1
+        selected_levels = LEVELS[start_index:end_index+1]
+
+        # Filter suggested missions
+        missions = Mission.objects.filter(status='not_started', level__in=selected_levels).exclude(application__student=user.student).select_related('company').order_by('?')[:30]
+        parsed_missions = MissionCardSerializer(missions, many=True).data
         return Response({
-            'missions': missions
+            'missions': parsed_missions
         })
 
 class SearchMissions(APIView):
