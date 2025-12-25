@@ -1,8 +1,9 @@
 from rest_framework import serializers
-from .models import Mission, Company, CompanyKYC
+from .models import Mission, Company, CompanyKYC, Application
 from mission_admin.models import Skill
 from user_auth.models import MissionUser
 from django.db.models import Q
+from student.models import SkillWrapper
 
 class NewMissionSerializer(serializers.ModelSerializer):
     skills = serializers.ListField(
@@ -34,6 +35,16 @@ class NewMissionSerializer(serializers.ModelSerializer):
         company = request.user.company
         validated_data['company'] = company
         return Mission.objects.create(**validated_data)
+
+class MissionEditSerializer(serializers.ModelSerializer):
+    skills = serializers.ListField(
+        child=serializers.CharField(),
+        allow_empty=False
+    )
+    
+    class Meta:
+        model = Mission
+        fields = ['name', 'description', 'level', 'render_link', 'skills', 'start_date', 'deadline']
 
 class CompanySerializer(serializers.ModelSerializer):
     uuid = serializers.ReadOnlyField()
@@ -150,3 +161,56 @@ class MissionCardSerializer(serializers.ModelSerializer):
     class Meta:
         model = Mission
         fields = ['uuid', 'name', 'description', 'level', 'skills', 'status', 'start_date']
+
+class MissionDetailsSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Mission
+        exclude = ['company']
+
+class ApplicationUserSkillsSerializer(serializers.ModelSerializer):
+
+    name = serializers.SerializerMethodField()
+    class Meta:
+        model = SkillWrapper
+        fields = ['mission_rate', 'test_rate', 'name']
+    
+    def get_name(self, obj: SkillWrapper):
+        if (obj.skill):
+            return obj.skill.name
+        return ''
+    
+
+class ApplicationSerializer(serializers.ModelSerializer):
+
+    student = serializers.SerializerMethodField()
+    class Meta:
+        model = Application
+        exclude = ['mission']
+    
+    def get_student(self, obj: Application):
+        if (not hasattr(obj, 'student')):
+            print('Has no student property')
+            return {
+                'bio': '',
+                'global_rate': 0,
+                'level': 'Unknown',
+                'skills': [],
+                'user': {
+                    'username': 'Unknown',
+                    'picture': 'none'
+                }
+            }
+        student = obj.student
+        user = student.user
+        return {
+            'bio': student.bio,
+            'global_rate': student.global_rate,
+            'level': student.level,
+            'skills': ApplicationUserSkillsSerializer(student.skills, many=True).data,
+            'user': {
+                'username': user.username,
+                'picture': user.picture.url if user.picture else 'none'
+            }
+        }
+

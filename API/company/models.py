@@ -4,6 +4,7 @@ from student.models import Student
 from django.contrib.postgres.fields import ArrayField
 import uuid
 from api.utils import rename_upload, document_rename_upload
+from django.utils import timezone
 
 
 class Company(models.Model):
@@ -32,6 +33,7 @@ class Mission(models.Model):
     STATUS = (
         ('not_started', "Not started"),
         ('in_progress', 'In progress'),
+        ('waiting_for_rate', 'Waiting for rate'),
         ('completed', "Completed")
     )
 
@@ -72,14 +74,13 @@ class Role(models.Model):
     mission = models.OneToOneField(Mission, on_delete=models.CASCADE, related_name="role")
 
 class Application(models.Model):
-
     STATUS = (
         ('pending', 'Pending'),
         ('confirmed', 'Confirmed'),
         ('not-validated', "Not validated")
     )
 
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(default=timezone.now)
     status = models.CharField(max_length=50, choices=STATUS, default='pending')
-    student = models.ForeignKey(Student, on_delete=models.SET_NULL, null=True, verbose_name='applications', related_name='applications')
-    mission = models.ForeignKey(Mission, on_delete=models.CASCADE, verbose_name="applications", related_name='applications')
+    student = models.ForeignKey(Student, on_delete=models.SET_NULL, null=True, verbose_name='Related student', related_name='applications')
+    mission = models.ForeignKey(Mission, on_delete=models.CASCADE, verbose_name="Related mission", related_name='applications')

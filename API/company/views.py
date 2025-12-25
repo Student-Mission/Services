@@ -6,13 +6,16 @@ from rest_framework.permissions import IsAuthenticated
 from api.permissions import IsCompany, IsValidatedCompany
 from .models import Mission, Role, Application
 from .serializers import NewMissionSerializer
-# from .serializers import MissionCardSerializer
-from django.db.models import Q
-from django.utils import timezone
-from datetime import datetime
 from .utils import get_applications_rate, get_missions_per_month
 from .serializers import CompanyUserProfileSerializer, AccountSerializer, CompanyKYCSerializer, MissionCardSerializer
 from rest_framework.parsers import FormParser, MultiPartParser
+from .serializers import MissionDetailsSerializer, ApplicationSerializer
+from django.core.exceptions import ValidationError
+from .serializers import MissionEditSerializer
+from mission_admin.models import Skill
+from student.models import SkillWrapper
+from django.db import transaction
+
 class Dashboard(APIView):
     permission_classes = [IsAuthenticated, IsCompany]
 
@@ -81,19 +84,41 @@ class MissionDetails(APIView):
     """
     Docstring for MissionDetails
     """
-    permission_classes = [IsAuthenticated, IsCompany, IsValidatedCompany]
+    permission_classes = [IsAuthenticated, IsCompany]
 
     def get(self, request: Request, uuid):
+        user = request.user
         try:
-            mission = Mission.objects.get(uuid=uuid)
-        except Mission.DoesNotExist:
+            mission = Mission.objects.get(uuid=uuid, company=user.company)
+        except (Mission.DoesNotExist, ValidationError):
             return Response({
-                'detail': 'mission not found' 
-            })
+                'detail': 'mission not found'
+            }, status=404)
+        parsed_mission = MissionDetailsSerializer(mission).data
+        parsed_applications = ApplicationSerializer(mission.applications, many=True).data
+
+        return Response({
+            'mission': parsed_mission,
+            'applications': parsed_applications
+        })
+        
         
 
     def put(self, request: Request, uuid):
-        pass
+        user = request.user
+        try:
+            mission = Mission.objects.get(uuid=uuid, company=user.company)
+        except (Mission.DoesNotExist, ValidationError):
+            return Response({
+                'detail': 'mission not found'
+            }, status=404)
+        serializer = MissionEditSerializer(data=request.data, instance=mission)
+        if (not serializer.is_valid()):
+            return Response(serializer.errors, status=400)
+        serializer.save()
+        return Response({
+            'msg': 'successfully updated'
+        })
     
     def delete(self, request: Request, uuid):
         pass
@@ -114,7 +139,58 @@ class EditApplication(APIView):
     permission_classes = [IsAuthenticated, IsCompany, IsValidatedCompany]
 
     def put(self, request: Request, uuid, app_id):
-        pass
+        user = request.user
+        try:
+            mission = Mission.objects.get(uuid=uuid, company=user.company)
+        except (Mission.DoesNotExist, ValidationError):
+            return Response({
+                'detail': 'mission not found'
+            }, status=404)
+        
+        try:
+            application = mission.applications.get(id=app_id, student__isnull=False)
+        except (Application.DoesNotExist, ValidationError):
+            return Response({
+                'detail': 'application not found'
+            }, status=404)
+        status = request.data.get('status', None)
+        if (not status):
+            return Response({
+                'status': 'Status required'
+            }, status=400)
+        if (status not in ['confirmed', 'not-validated']):
+            return Response({
+                'status': 'Invalid status'
+            }, status=400)
+        if (status == 'confirmed' and mission.applications.filter(status='confirmed').exists()):
+            return Response({
+                'detail': 'already confirmed another application'
+            }, status=400)
+        
+        with transaction.atomic():
+            application.status = status
+            if (status == 'confirmed'):
+                mission.status = 'in_progress'
+                mission.save()
+                Role.objects.get_or_create(student=application.student, mission=mission)
+                student = application.student
+                already_owned_skills = student.skills.filter(skill__name__in=mission.skills).values_list('skill__name', flat=True)
+                skills_to_add = set(mission.skills) - set(already_owned_skills)
+
+                if (skills_to_add):
+                    raw_skills = Skill.objects.filter(name__in=skills_to_add)
+                    new_wrappers = [
+                        SkillWrapper(skill=skill, student=student)
+                        for skill in raw_skills
+                    ]
+                    SkillWrapper.objects.bulk_create(new_wrappers)
+
+                
+            application.save()
+        return Response({
+            'msg': 'successfully updated',
+            'applications': ApplicationSerializer(mission.applications, many=True).data
+        })
 
 class RateMission(APIView):
     """

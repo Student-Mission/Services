@@ -9,6 +9,7 @@ from .utils import generate_tokens
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.serializers import TokenRefreshSerializer
 from rest_framework_simplejwt.views import TokenRefreshView
+from rest_framework_simplejwt.exceptions import TokenError, InvalidToken
 from rest_framework.permissions import IsAuthenticated
 from drf_spectacular.utils import extend_schema, OpenApiExample
 from drf_spectacular.types import OpenApiTypes
@@ -69,8 +70,12 @@ class Refresh(APIView):
     def post(self, request: Request):
         serializer = TokenRefreshSerializer(data=request.data)
 
-        if (not serializer.is_valid()):
-            return Response(serializer.errors, status=400)
+        try:
+            serializer.is_valid()
+        except (TokenError, InvalidToken):
+            return Response({
+                'refresh': 'Invalid or expired token'
+            }, status=401)
         return Response(serializer.validated_data)
 
 class EditSecurity(APIView):
