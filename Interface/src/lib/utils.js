@@ -1,5 +1,5 @@
 
-function requestFailureHandler(error, setRequestError, navigate, onBadRequest=null) {
+function requestFailureHandler(error, setRequestError, navigate, onBadRequest=null, customHandler=null) {
     if (error.response) {
         const status = error.response.status;
         if (status === 400) {
@@ -19,6 +19,7 @@ function requestFailureHandler(error, setRequestError, navigate, onBadRequest=nu
                 en: "Server error, try again."
             })
         }
+        customHandler?.(status, error.response.data);
     } else {
         setRequestError({
             fr: "Erreur réseau. Vérifiez votre connexion.",

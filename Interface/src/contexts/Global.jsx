@@ -19,16 +19,6 @@ export const GlobalProvider = ({children})=>{
     const [logged, setLogged] = useState(false);
     const navigate = useNavigate();
 
-    const skillsFetchErrorHandler = (error)=>{
-        if (error.response) {
-            if (error.response.status === 401) {
-                setLogged(false);
-                navigate('/login');
-            }
-        } else {
-            alert('Network error')
-        }
-    }
 
     const checkAuth = ()=>{
         Connection.get('auth/user/', (data)=>{

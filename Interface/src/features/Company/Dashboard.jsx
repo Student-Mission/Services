@@ -13,6 +13,7 @@ import { FaCirclePlus } from "react-icons/fa6";
 import { GoPlus } from "react-icons/go";
 import Connection from "../../services/Connection";
 import { useNavigate } from "react-router-dom";
+import { requestFailureHandler } from "../../lib/utils";
 const MEDIA_API = import.meta.env.VITE_MEDIA_API;
 
 const StatusCard = ({data})=>{
@@ -171,7 +172,7 @@ function Content({data}) {
                 <div className={`mt-5 grid grid-cols-12 gap-4`}>
                     <div className={`p-3 col-span-12 lg:col-span-6 xl:col-span-8 xl:h-[400px] rounded-2xl shadow border border-gray-200`}>
                         <div className={`flex items-center justify-between`}>
-                            <h5 className={`roboto text-[19px]`}>Monthly applications</h5>
+                            <h5 className={`roboto text-[19px]`}>Monthly missions published</h5>
                             <Button sx={{
                                 textTransform: 'none'
                             }} className={`bg-blue-main text-white! roboto-medium`}>
@@ -257,6 +258,8 @@ function Dashboard() {
 
     const [data, setData] = useState({});
     const [loading, setLoading] = useState(true);
+    const [requestError, setRequestError] = useState(null);
+    const navigate = useNavigate();
 
     // Handlers
     const fetchData = ()=>{
@@ -264,7 +267,8 @@ function Dashboard() {
             setData(data);
             console.log(MEDIA_API + data.profile.picture);
         }, (error)=>{
-            alert('Error');
+            // alert('Error');
+            requestFailureHandler(error, setRequestError, navigate);
         }, setLoading, true)
     }
     useEffect(()=>{

@@ -1,9 +1,14 @@
-import { Button, Container, IconButton } from "@mui/material";
+import { Button, CircularProgress, Container, IconButton } from "@mui/material";
 import StudentNavigation from "../../components/layout/StudentNavigation";
 import { Input, Chip } from "@mui/joy";
 import { GoSearch } from "react-icons/go";
 import { useEffect, useState } from "react";
 import { FaBookmark } from "react-icons/fa";
+import Connection from "../../services/Connection";
+import { requestFailureHandler } from "../../lib/utils";
+import { useNavigate } from "react-router-dom";
+
+const MEDIA_API = import.meta.env.VITE_MEDIA_API;
 
 // Components
 const MissionCard = ({mission})=>{
@@ -17,14 +22,15 @@ const MissionCard = ({mission})=>{
         Master: 'bg-[#00aabc30]! text-[#00aabc]!',
         Senior: 'bg-[#03d69330]! text-[#03d693]!'
     }
+    const navigate = useNavigate();
 
     return (
         <div className={`p-4 rounded-2xl select-none shadow-2xs bg-white mb-5 border-2 border-gray-100 py-5 gap-3 2xl:gap-8 flex items-start`}>
             <div style={{
-                backgroundImage: `url(${mission.company.picture})`
+                backgroundImage: `url(${MEDIA_API + mission.company.picture})`
             }} className={`w-[130px] h-[110px] bg-center rounded-xl bg-no-repeat bg-cover`}>
             </div>
-            <div className={``}>
+            <div className={`w-[60%]`}>
                 <h6 className={`roboto-light text-[15px] text-gray-main`}>{mission.company.name}</h6>
                 <h3 className={`roboto-medium text-[21px]`}>{mission.name}</h3>
                 <p className={`text-[15px] roboto-light text-gray-main wrap-break-word line-clamp-1`}>{mission.description}</p>
@@ -34,10 +40,12 @@ const MissionCard = ({mission})=>{
             </div>
             <div className={`flex-1`}>
                 <div className={`flex justify-end`}>
-                    <Button sx={{
+                    <Button onClick={()=>{
+                        navigate(`/student/find-missions/${mission.uuid}`)
+                    }} sx={{
                         textTransform: 'none'
                     }} className={`w-[90px] xl:w-[120px] h-10 text-white! bg-blue-500! roboto-medium`}>
-                        Apply
+                        Details
                     </Button>
                 </div>
                 <div className={`flex justify-end mt-2`}>
@@ -138,10 +146,6 @@ function Content({data}) {
 
 function FindMissions() {
 
-    useEffect(()=>{
-        document.title = "Find missions | STM"
-    }, [])
-
     const [data, setData] = useState({
         missions: [
             {
@@ -206,12 +210,48 @@ function FindMissions() {
             }
         ]
     })
+    const [loading, setLoading] = useState(true);
+    const [requestError, setRequestError] = useState(null);
+    const navigate = useNavigate();
+
+    const fetchData = ()=>{
+        Connection.get('student/missions/', (_data)=>{
+            setData(_data);
+        }, (error)=>{
+            requestFailureHandler(error, setRequestError, navigate);
+        }, setLoading, true);
+    }
+
+    useEffect(()=>{
+        document.title = "Find missions | STM";
+        fetchData();
+    }, [])
+
 
     return (
         <div className={`bg-gray-100 min-h-screen`}>
             <StudentNavigation/>
             <Container>
-                <Content data={data} />
+                {
+                    loading &&
+                    <div className="w-full pt-16 md:pt-20 h-[200px] flex justify-center items-center">
+                        <CircularProgress size={25} sx={{
+                            color: '#01406c'
+                        }} />
+                    </div>
+                }
+                {
+                    !loading && !requestError && 
+                    <Content data={data} />
+                }
+                {
+                    requestError && !loading &&
+                    <div className="w-full pt-16 md:pt-20">
+                        <div className="w-full h-[200px] flex justify-center items-center">
+                            <strong className="font-normal roboto-medium text-[21px]">{requestError.fr}</strong>
+                        </div>
+                    </div>
+                }
             </Container>
         </div>
     )
