@@ -15,6 +15,9 @@ from .serializers import MissionEditSerializer
 from mission_admin.models import Skill
 from student.models import SkillWrapper
 from django.db import transaction
+from users.models import Notification
+from users.serializers import AlertSerializer
+from users.utils import trigger_notification
 
 class Dashboard(APIView):
     permission_classes = [IsAuthenticated, IsCompany]
@@ -184,8 +187,19 @@ class EditApplication(APIView):
                         for skill in raw_skills
                     ]
                     SkillWrapper.objects.bulk_create(new_wrappers)
-
                 
+                # Send notification
+                if (application.student):
+                    alert_context = {
+                        'mission_uuid': str(mission.uuid),
+                        'application_status': status
+                    }
+                    alert = Notification.objects.create(
+                        verb_key="APPLICATION_RESPONSE",
+                        context_data=alert_context,
+                        user=application.student.user
+                    )
+                    trigger_notification(application.student.user.uuid, AlertSerializer(alert).data)
             application.save()
         return Response({
             'msg': 'successfully updated',

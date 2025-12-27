@@ -24,8 +24,10 @@ urlpatterns = [
     path('schema/', SpectacularAPIView.as_view(), name='schema'),
     path('docs/', SpectacularSwaggerView.as_view(url_name='schema')),
     path('admin/', admin.site.urls),
+    path('ws-auth/', include('django_channels_jwt.urls')),
     path('auth/', include('user_auth.urls')),
     path('student/', include('student.urls')),
     path('company/', include('company.urls')),
+    path('users/', include('users.urls'))
 ]
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -45,6 +45,7 @@ AI_KEY = env("AI_KEY")
 # Application definition
 
 INSTALLED_APPS = [
+    'daphne',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -55,10 +56,12 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'corsheaders',
     'django.contrib.postgres',
+    'channels',
     'user_auth',
     'student',
     'company',
     'mission_admin',
+    'users',
     'drf_spectacular'
 ]
 
@@ -94,7 +97,22 @@ TEMPLATES = [
 AUTH_USER_MODEL = 'user_auth.MissionUser'
 
 WSGI_APPLICATION = 'api.wsgi.application'
+ASGI_APPLICATION = 'api.asgi.application'
 
+CHANNEL_LAYERS = {
+  "default": {
+    "BACKEND": "channels_redis.core.RedisChannelLayer",
+    "CONFIG": {"hosts": [("127.0.0.1", 6379)]},
+  }
+}
+
+CACHES = {
+  "default": {
+    "BACKEND": "django_redis.cache.RedisCache",
+    "LOCATION": "redis://127.0.0.1:6379/1",
+    "OPTIONS": {"CLIENT_CLASS": "django_redis.client.DefaultClient"}
+  }
+}
 
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
@@ -162,8 +180,10 @@ REST_FRAMEWORK = {
 # Optional: Customize token lifetime (default access token: 5 mins, refresh token: 1 day)
 from datetime import timedelta
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=15),
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=10),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    'USER_ID_FIELD': 'uuid',  # Le nom du champ dans ton modèle User (ex: uuid ou id)
+    'USER_ID_CLAIM': 'uuid', # Le nom de la clé à l'intérieur du token JSON
     # 'SIGNING_KEY': 'your_strong_secret_key_here', # It's recommended to use a key independent from Django's SECRET_KEY
 }
 

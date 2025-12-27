@@ -16,6 +16,10 @@ from drf_spectacular.types import OpenApiTypes
 from rest_framework.parsers import FormParser, MultiPartParser
 from mission_admin.serializers import SkillListSerializer
 from mission_admin.models import Skill
+from users.serializers import AlertSerializer
+from users.utils import trigger_notification
+from users.models import Notification
+# impor
 
 class Login(APIView):
     permission_classes = [AllowAny]
@@ -39,6 +43,7 @@ class Login(APIView):
             'email': user.email,
             'picture': user.picture.url if user.picture else 'none'
         }
+        data['alerts'] = AlertSerializer(user.alerts, many=True).data
         data['available_skills'] = SkillListSerializer(Skill.objects.all(), many=True).data
         return Response(data)
 
@@ -110,6 +115,12 @@ class EditSecurity(APIView):
         if (not serializer.is_valid()):
             return Response(serializer.errors, status=400)
         serializer.save()
+        alert = Notification.objects.create(
+            verb_key='SECURITY_UPDATED',
+            context_data={},
+            user=request.user
+        )
+        trigger_notification(str(request.user.uuid), AlertSerializer(alert).data)
         return Response({
             'msg': 'security successfully updated'
         })
@@ -126,6 +137,7 @@ class GetUser(APIView):
                 'email': user.email,
                 'picture': user.picture.url if user.picture else 'none'
             },
+            'alerts': AlertSerializer(user.alerts, many=True).data,
             'available_skills': SkillListSerializer(Skill.objects.all(), many=True).data
         }
         return Response(data)
