@@ -1,9 +1,10 @@
 from rest_framework import serializers
-from .models import Mission, Company, CompanyKYC, Application
+from .models import Mission, Company, CompanyKYC, Application, Role
 from mission_admin.models import Skill
 from user_auth.models import MissionUser
 from django.db.models import Q
 from student.models import SkillWrapper
+from .utils import update_skills_proficiency, update_student_global_rate
 
 class NewMissionSerializer(serializers.ModelSerializer):
     skills = serializers.ListField(
@@ -242,3 +243,28 @@ class ApplicationSerializer(serializers.ModelSerializer):
             }
         }
 
+class RoleUpdateSerializer(serializers.ModelSerializer):
+    quality_feedback = serializers.CharField(required=False)
+    deadline_feedback = serializers.CharField(required=False)
+    feedback = serializers.CharField(required=False)
+
+    class Meta:
+        model = Role
+        fields = ['quality_rate', 'deadline_rate', 'quality_feedback', 'deadline_feedback', 'feedback']
+    
+    def update(self, instance, validated_data: dict):
+        instance.quality_rate = validated_data.get('quality_rate')
+        instance.deadline_rate = validated_data.get('deadline_rate')
+
+        if (validated_data.get('quality_feedback')):
+            instance.quality_feedback = validated_data.get('quality_feedback')
+        if (validated_data.get('deadline_feedback')):
+            instance.deadline_feedback = validated_data.get('deadline_feedback')
+        if (validated_data.get('feedback')):
+            instance.feedback = validated_data.get('feedback')
+        instance.save()
+        
+        if (instance.student):
+            update_student_global_rate(instance.student)
+            update_skills_proficiency(instance)
+        return instance

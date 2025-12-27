@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from api.permissions import IsCompany, IsValidatedCompany
 from .models import Mission, Role, Application
-from .serializers import NewMissionSerializer
+from .serializers import NewMissionSerializer, RoleUpdateSerializer
 from .utils import get_applications_rate, get_missions_per_month
 from .serializers import CompanyUserProfileSerializer, AccountSerializer, CompanyKYCSerializer, MissionCardSerializer
 from rest_framework.parsers import FormParser, MultiPartParser
@@ -213,10 +213,41 @@ class RateMission(APIView):
     permission_classes = [IsAuthenticated, IsCompany, IsValidatedCompany]
 
     def post(self, request: Request, uuid):
-        pass
+        user = request.user
+        try:
+            mission = Mission.objects.get(uuid=uuid, company=user.company)
+        except (Mission.DoesNotExist, ValidationError):
+            return Response({
+                'detail': 'mission not found'
+            }, status=404)
+        if (mission.status != 'waiting_for_rate' or (not hasattr(mission, 'role'))):
+            return Response({
+                'detail': 'cannot rate now'
+            }, status=403)
+        
+        with transaction.atomic():
+            role = mission.role
+            serializer = RoleUpdateSerializer(data=request.data, instance=role)
+            if (not serializer.is_valid()):
+                return Response(serializer.errors, status=400)
+            serializer.save()
+            mission.status = 'completed'
+            mission.save()
+            if (hasattr(mission.role, 'student')):
+                student = mission.role.student
+                alert = Notification.objects.create(
+                    verb_key="MISSION_RATED",
+                    context_data={
+                        'mission_uuid': str(mission.uuid)
+                    },
+                    user=student.user
+                )
+                trigger_notification(str(student.user.uuid), AlertSerializer(alert).data)
+        return Response({
+            'msg': "mission successfully rated"
+        })
+        
 
-    def put(self, request: Request, uuid):
-        pass
 
 # Profile
 
