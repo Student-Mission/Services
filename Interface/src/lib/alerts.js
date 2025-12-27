@@ -198,6 +198,29 @@ const alertTranslator = {
             alert.linkText = 'Voir le rendu';
         }
         return alert;
+    },
+    MISSION_RATED: (data, language='en')=>{
+        const {mission_uuid} = data.context_data;
+
+        let alert = {
+            title: '',
+            message: ``,
+            link: mission_uuid ? `/student/find-missions/${mission_uuid}`: '/student/missions',
+            style: {
+                icon: BsStack,
+                class: 'text-green-600 border-green-600/30 bg-green-400/30'
+            }
+        }
+        if (language === 'en') {
+            alert.title = 'Mission rated';
+            alert.message = 'Your mission submission has been rated. View the rating and feedback on the mission page.';
+            alert.linkText = 'View rating';
+        } else if (language === 'fr') {
+            alert.title = 'Mission notée';
+            alert.message = 'Votre rendu a été évalué. Consultez la note et les commentaires sur la page de la mission.';
+            alert.linkText = 'Voir la note';
+        }
+        return alert;
     }
 }
 

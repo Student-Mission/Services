@@ -18,6 +18,8 @@ import { MdContentCopy, MdLink } from "react-icons/md";
 import ApplicantProfile from "../../components/layout/ApplicantProfile";
 import { GoDotFill } from "react-icons/go";
 import { StarIcon } from "lucide-react";
+import { deadlineFeedback, overallFeedback, qualityFeedback, rateRules } from "./rules/rate";
+import { requestFailureHandler } from "../../lib/utils";
 
 dayjs.locale('fr');
 dayjs.extend(utc);
@@ -155,6 +157,85 @@ const MissionRate = ({mission, setMission, setRateMode})=>{
         username: mission.role.user.username,
         mission_name: mission.name,
     }
+    const [rateForm, setRateForm] = useState({
+        quality_rate: 0,
+        deadline_rate: 0,
+        quality_feedback: "",
+        deadline_feedback: "",
+        feedback: ""
+    })
+    const [errors, setErrors] = useState({});
+    const [requestError, setRequestError] = useState(null);
+    const [loading, setLoading] = useState(false);
+
+
+    const handleFeedbackChange = (event)=>{
+        setRateForm({
+            ...rateForm,
+            [event.target.name]: event.target.value
+        })
+    }
+    const {id} = useParams();
+    const navigate = useNavigate();
+
+    const submitFormRate = ()=>{
+        if (loading)
+            return;
+
+        // Reset errors displays
+        setErrors({});
+        setRequestError(null);
+
+        // Format forms and validations
+        let rules = {
+            ...rateRules,
+        }
+        let newForm = {
+            quality_rate: rateForm.quality_rate,
+            deadline_rate: rateForm.deadline_rate
+        }
+
+        if (rateForm.quality_feedback.length > 0) {
+            rules['quality_feedback'] = qualityFeedback.quality_feedback;
+            newForm['quality_feedback'] = rateForm.quality_feedback;
+        }
+        if (rateForm.deadline_feedback.length > 0) {
+            rules['deadline_feedback'] = deadlineFeedback.deadline_feedback;
+            newForm['deadline_feedback'] = rateForm.deadline_feedback;
+        }
+        if (rateForm.feedback.length > 0 ) {
+            rules['feedback'] = overallFeedback.feedback;
+            newForm['feedback'] = rateForm.feedback;
+        }
+
+        // Validate inputs
+        const errorsTMP = Validator.validate(rateForm, rules);
+
+        // Submit form
+        if (Object.keys(errorsTMP).length === 0) {
+            Connection.post(`company/missions/${id}/rate/`, newForm, (data)=>{
+                setMission({
+                    ...mission,
+                    ['status']: 'completed'
+                })
+                setRateMode(false);
+            }, (error)=>{
+                requestFailureHandler(error, setRequestError, navigate);
+            }, setLoading, true);
+        } else {
+            setErrors(errorsTMP);
+        }
+    }
+
+    const handleBack = ()=>{
+        if (loading)
+            return;
+        setErrors({});
+        setRequestError(null);
+        setRateMode(false);
+    }
+
+
     const qualityBrief = `Provide specific feedback on the quality of ${data.username} work`;
     const deadlineBrief = "Comment on abilities to meet deadline";
     const overallBrief = `Summarize your experience working with ${data.username}`
@@ -168,33 +249,74 @@ const MissionRate = ({mission, setMission, setRateMode})=>{
                 <div className={`mt-7`}>
                     <Card className={`bg-white px-6 py-7 shadow-sm!`}>
                         <h2 className={`roboto-medium text-[23px]`}>Quality of work</h2>
-                        <Rating max={10}  className={`mt-4 opacity-55 text-[34px]! gap-3! border-gray-50!`}
-                        />
-                        <Textarea minRows={7} placeholder={qualityBrief} className={`roboto mt-5`} />
+                        
+                        <div>
+                            <Rating max={10} value={rateForm.quality_rate} onChange={(e, value)=>setRateForm({
+                                ...rateForm, ['quality_rate']: value
+                            })} className={`mt-4 opacity-55 text-[34px]! gap-3! border-gray-50!`}
+                            />
+                            {
+                                errors.quality_rate && <ErrorBox content={errors.quality_rate} />
+                            }
+                        </div>
+                        <div className="mt-5">
+                            <Textarea minRows={7} name="quality_feedback" value={rateForm.quality_feedback} onChange={handleFeedbackChange} placeholder={qualityBrief} className={`roboto`} />
+                            {
+                                errors.quality_feedback && <ErrorBox content={errors.quality_feedback} />
+                            }
+                        </div>
                     </Card>
                     <Card className={`bg-white px-6 py-7 mt-5 shadow-sm!`}>
                         <h2 className={`roboto-medium text-[23px]`}>Adherence to Deadline</h2>
-                        <Rating max={10}  className={`mt-4 opacity-55 text-[34px]! gap-3! border-gray-50!`}
+                        
+                        <Rating max={10} value={rateForm.deadline_rate} onChange={(e, value)=>{
+                            setRateForm({
+                                ...rateForm,
+                                ['deadline_rate']: value
+                            })
+                        }} className={`mt-4 opacity-55 text-[34px]! gap-3! border-gray-50!`}
                         />
-                        <Textarea minRows={7} placeholder={deadlineBrief} className={`roboto mt-5`} />
+                        {
+                            errors.deadline_rate && <ErrorBox content={errors.deadline_rate} />
+                        }
+                        <div className="mt-5">
+                            <Textarea minRows={7} placeholder={deadlineBrief} name="deadline_feedback" value={rateForm.deadline_feedback} onChange={handleFeedbackChange} className={`roboto`} />
+                            {
+                                errors.deadline_feedback && <ErrorBox content={errors.deadline_feedback} />
+                            }
+                        </div>
                     </Card>
 
                     <Card className={`bg-white px-6 py-7 mt-5 shadow-sm!`}>
                         <h2 className={`roboto-medium text-[23px]`}>Overall feedback</h2>
-                        <Textarea minRows={7} placeholder={overallBrief} className={`roboto mt-5`} />
+                        <Textarea minRows={7} name="feedback" value={rateForm.feedback} onChange={handleFeedbackChange} placeholder={overallBrief} className={`roboto mt-5`} />
+                        {
+                            errors.feedback && <ErrorBox content={errors.feedback} />
+                        }
                     </Card>
 
-                    <div className={`flex gap-3 items-center justify-end my-5`}>
-                        <Button variant="outlined" sx={{
-                            textTransform: 'none'
-                        }} className={`border-sky text-sky roboto h-[38px]`}>
-                            Back
-                        </Button>
-                        <Button sx={{
-                            textTransform: 'none'
-                        }} className={`w-[100px] h-[38px] roboto text-white! bg-blue-main`}>
-                            Evaluate
-                        </Button>
+                    <div className={`my-5`}>
+                        {
+                            requestError && <ErrorBox content={requestError} />
+                        }
+                        <div className="flex gap-3 items-center justify-end">
+                            <Button disabled={loading} onClick={handleBack} variant="outlined" sx={{
+                                textTransform: 'none'
+                            }} className={`border-sky text-sky roboto h-[38px]`}>
+                                Back
+                            </Button>
+                            <Button disabled={loading} onClick={submitFormRate} sx={{
+                                textTransform: 'none'
+                            }} className={`w-[100px] h-[38px] roboto text-white! bg-blue-main`}>
+                                {
+                                    loading ?
+                                    <CircularProgress size={18} sx={{
+                                        color: 'white'
+                                    }} />:
+                                    <>Evaluate</>
+                                }
+                            </Button>
+                        </div>
                     </div>
                 </div>
             </div>

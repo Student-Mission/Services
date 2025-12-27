@@ -117,7 +117,7 @@ function Content({mission, setMission}) {
     const renderLinkBrief = "Submit your work using the link below";
 
     // Submit management
-    const [submitted, setSubmitted] = useState(mission.status === 'waiting_for_rate');
+    const [submitted, setSubmitted] = useState(mission.status === 'waiting_for_rate' || mission.status === 'confirmed');
     const [submitLoading, setSubmitLoading] = useState(false);
     const [submitRequestError, setSubmitRequestError] = useState(null);
 
@@ -216,6 +216,12 @@ function Content({mission, setMission}) {
                     <h4 className={`roboto-medium text-[22px]`}>Mission description</h4>
                     <pre className={`text-gray-500 mt-4 roboto-light wrap-break-word! text-wrap`}>{mission.description}</pre>
                 </div>
+                {
+                    mission.extras && mission.extras.render_link &&
+                    <div className={`mt-5 w-full bg-white! shadow-2xs border border-gray-200 rounded-2xl p-5 py-7`}>
+                        <h4 className={`roboto-medium text-[22px]`}>Rate result</h4>
+                    </div>
+                }
             </div>
             <div className={`col-span-12 lg:col-span-6 xl:col-span-4`}>
                 <div className={`w-full p-5 py-7 bg-white shadow-2xs rounded-2xl border border-gray-200`}>
@@ -263,7 +269,7 @@ function Content({mission, setMission}) {
                         </Button>
                     }
                     {
-                        !submitted && mission.extras.application_status && mission.extras.application_status === 'confirmed' &&
+                        !submitted && mission.status === 'in_progress' && mission.extras.application_status && mission.extras.application_status === 'confirmed' &&
                         <>
                             <Button onClick={submitMission} disabled={submitLoading} sx={{
                                 textTransform: 'none'
@@ -306,6 +312,15 @@ function Content({mission, setMission}) {
                                 Share
                             </Button>
                         </div>
+                    }
+                    {
+                        mission.status === 'completed' &&
+                        <Button sx={{
+                            textTransform: 'none'
+                        }} variant='outlined' disabled className={`border-green text-green gap-2 roboto h-[38px] w-full`}>
+                            <CiCircleCheck className={`text-[22px]`}/>
+                            Already completed
+                        </Button>
                     }
                 </div>
                 <div className={`w-full mt-4 p-5 py-7 bg-white shadow-2xs rounded-2xl border border-gray-200`}>

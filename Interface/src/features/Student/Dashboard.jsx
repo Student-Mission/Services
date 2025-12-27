@@ -71,6 +71,10 @@ function Content({data, loading}) {
         in_progress: {
             text: 'In progress',
             sx: 'bg-amber-600/30! text-amber-600!'
+        },
+        waiting_for_rate: {
+            text: 'Waiting for rate',
+            sx: 'bg-[#00aabc21]! text-sky'
         }
     }
 
