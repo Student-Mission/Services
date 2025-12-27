@@ -72,19 +72,8 @@ export const GlobalProvider = ({children})=>{
     
     }, [access])
 
-    // useEffect(()=>{
-    //     let newAlerts = [];
-    //     alerts.map((alert)=>{
-    //         if (newAlerts.findIndex((value)=>value.id === alert.id) != -1)
-    //             return;
-    //         newAlerts.push(alert);
-    //     })
-    //     setAlerts(newAlerts);
-    // }, [alerts])
 
     const handleAlertReception = (event)=>{
-        // alert("New alert");
-        // const data = event.data.data;
         let payload = null;
         try {
             payload = JSON.parse(event.data).data;
@@ -145,8 +134,6 @@ export const GlobalProvider = ({children})=>{
         }, (error)=>{
             connectingRef.current = false;
             console.log("Failed to establish websocket connection");
-            // console.log(error);
-            // alert("Websocket error");
         }, null, true)
         
     }

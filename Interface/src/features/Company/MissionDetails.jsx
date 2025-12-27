@@ -1,7 +1,7 @@
 import { useContext, useEffect, useState } from "react";
 import CompanyNavigation from "../../components/layout/CompanyNavigation";
 import Container from "../../components/layout/Container";
-import { Avatar, Button, Card, CircularProgress, IconButton } from "@mui/material";
+import { Avatar, Button, Card, CircularProgress, IconButton, Rating } from "@mui/material";
 import cover from "../../assets/images/cover.png";
 import { FaCalendar, FaExternalLinkAlt, FaStar } from "react-icons/fa";
 import dayjs from "dayjs";
@@ -17,6 +17,7 @@ import ErrorBox from "../../components/ui/ErrorBox";
 import { MdContentCopy, MdLink } from "react-icons/md";
 import ApplicantProfile from "../../components/layout/ApplicantProfile";
 import { GoDotFill } from "react-icons/go";
+import { StarIcon } from "lucide-react";
 
 dayjs.locale('fr');
 dayjs.extend(utc);
@@ -148,7 +149,60 @@ function Header({loading, mission, activeTab, setActiveTab, editMode, setEditMod
     )
 }
 
-const MissionProgress = ({mission})=>{
+const MissionRate = ({mission, setMission, setRateMode})=>{
+
+    const data = {
+        username: mission.role.user.username,
+        mission_name: mission.name,
+    }
+    const qualityBrief = `Provide specific feedback on the quality of ${data.username} work`;
+    const deadlineBrief = "Comment on abilities to meet deadline";
+    const overallBrief = `Summarize your experience working with ${data.username}`
+    return (
+        <div className={`w-full flex justify-center`}>
+            <div className={`w-full 2xl:w-[75%]`}>
+                <div className={``}>
+                    <h1 className={`roboto-semibold text-[33px]`}>Evaluate {data.username}</h1>
+                    <p className={`roboto-light text-gray-500 text-[20px]`}>Mission: {data.mission_name}</p>
+                </div>
+                <div className={`mt-7`}>
+                    <Card className={`bg-white px-6 py-7 shadow-sm!`}>
+                        <h2 className={`roboto-medium text-[23px]`}>Quality of work</h2>
+                        <Rating max={10}  className={`mt-4 opacity-55 text-[34px]! gap-3! border-gray-50!`}
+                        />
+                        <Textarea minRows={7} placeholder={qualityBrief} className={`roboto mt-5`} />
+                    </Card>
+                    <Card className={`bg-white px-6 py-7 mt-5 shadow-sm!`}>
+                        <h2 className={`roboto-medium text-[23px]`}>Adherence to Deadline</h2>
+                        <Rating max={10}  className={`mt-4 opacity-55 text-[34px]! gap-3! border-gray-50!`}
+                        />
+                        <Textarea minRows={7} placeholder={deadlineBrief} className={`roboto mt-5`} />
+                    </Card>
+
+                    <Card className={`bg-white px-6 py-7 mt-5 shadow-sm!`}>
+                        <h2 className={`roboto-medium text-[23px]`}>Overall feedback</h2>
+                        <Textarea minRows={7} placeholder={overallBrief} className={`roboto mt-5`} />
+                    </Card>
+
+                    <div className={`flex gap-3 items-center justify-end my-5`}>
+                        <Button variant="outlined" sx={{
+                            textTransform: 'none'
+                        }} className={`border-sky text-sky roboto h-[38px]`}>
+                            Back
+                        </Button>
+                        <Button sx={{
+                            textTransform: 'none'
+                        }} className={`w-[100px] h-[38px] roboto text-white! bg-blue-main`}>
+                            Evaluate
+                        </Button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    )
+}
+
+const MissionProgress = ({mission, setRateMode})=>{
 
     const levelsTheme = {
         Rookie: 'bg-amber-700/30! text-amber-700!',
@@ -158,17 +212,6 @@ const MissionProgress = ({mission})=>{
         Expert: 'bg-[#02616b30]! text-[#02616b]!',
         Master: 'bg-[#00aabc30]! text-[#00aabc]!',
         Senior: 'bg-[#03d69330]! text-[#03d693]!'
-    }
-
-    const role = {
-        student: {
-            user: {
-                username: 'Hanniel',
-                picture: 'none'
-            },
-            level: 'Intermediate',
-            global_rate: 3.4
-        }
     }
 
     const computeProgress = ()=>{
@@ -206,22 +249,25 @@ const MissionProgress = ({mission})=>{
                 <Card className={`bg-white p-4 py-5 border-0 shadow-sm!`}>
                     <h3 className={`roboto-semibold text-[19px] text-blue-focus`}>Project Activity</h3>
                     <div className={`flex items-center gap-2 mt-4`}>
-                        <div className={`flex items-center gap-3 min-w-[40%] border-e border-gray-300`}>
-                            <Avatar src={role.student.user.picture} alt={role.student.user.username} className={`w-[70px]! h-[70px]! bg-[#02616b21]! border! border-[#02616b45] text-sky-dark roboto`} />
-                            <div className={``}>
-                                <strong className={`font-normal text-[11px] text-gray-400 roboto-medium`}>STUDENT</strong>
-                                <h6 className={`text-[17px] roboto-medium`}>{role.student.user.username}</h6>
-                                <div className={`flex items-center gap-1`}>
-                                    <Chip className={`p-1 px-4 roboto text-[11px]! ${levelsTheme[role.student.level]}`}>
-                                        {role.student.level}
-                                    </Chip>
-                                    <div className={`flex items-center`}>
-                                        <FaStar className={`text-yellow-400 text-[12px]`} />
-                                        <p className={`roboto-medium ms-[3px] text-[13px] text-yellow-400`}>{role.student.global_rate}</p>
+                        {
+                            mission.role &&
+                            <div className={`flex items-center gap-3 min-w-[40%] border-e border-gray-300`}>
+                                <Avatar src={mission.role.user.picture} alt={mission.role.user.username} className={`w-[70px]! h-[70px]! bg-[#02616b21]! border! border-[#02616b45] text-sky-dark roboto`} />
+                                <div className={``}>
+                                    <strong className={`font-normal text-[11px] text-gray-400 roboto-medium`}>STUDENT</strong>
+                                    <h6 className={`text-[17px] roboto-medium`}>{mission.role.user.username}</h6>
+                                    <div className={`flex items-center gap-1`}>
+                                        <Chip className={`p-1 px-4 roboto text-[11px]! ${levelsTheme[mission.role.level]}`}>
+                                            {mission.role.level}
+                                        </Chip>
+                                        <div className={`flex items-center`}>
+                                            <FaStar className={`text-yellow-400 text-[12px]`} />
+                                            <p className={`roboto-medium ms-[3px] text-[13px] text-yellow-400`}>{mission.role.global_rate}</p>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        }
                         <div className={`flex-1 flex justify-end px-5`}>
                             <div className="w-full">
                                 <strong className={`font-normal roboto-medium text-[15px] text-gray-500`}>CURRENT PROGRESS</strong>
@@ -272,14 +318,25 @@ const MissionProgress = ({mission})=>{
             <div className={`col-span-12 md:col-span-6 xl:col-span-4`}>
                 <Card className={`px-5 py-6! border-0! shadow-sm!`}>
                     <h4 className={`text-gray-400 roboto-medium text-[15px]`}>STATUS</h4>
-                    <Chip variant='outlined' className={`rounded-md! mt-3 bg-green-600/10! p-1 px-4! border-[#00aabc30]!`} >
-                        <div className={`flex items-center gap-3`}>
-                            <div className={`rounded-full bg-[#00aabc40]`}>
-                                <GoDotFill className={`text-[#00aabc]`}/>
+                    <div className={`flex items-center gap-3 mt-3`}>
+                        <Chip variant='outlined' className={`rounded-md! bg-green-600/10! p-1 px-4! border-[#00aabc30]!`} >
+                            <div className={`flex items-center gap-3`}>
+                                <div className={`rounded-full bg-[#00aabc40]`}>
+                                    <GoDotFill className={`text-[#00aabc]`}/>
+                                </div>
+                                <p className={`roboto text-[#00aabc]`}>{missionStatusLabel[mission.status]}</p>
                             </div>
-                            <p className={`roboto text-[#00aabc]`}>{missionStatusLabel[mission.status]}</p>
-                        </div>
-                    </Chip>
+                        </Chip>
+                        {
+                            mission.status === 'waiting_for_rate' &&
+                            <Button onClick={()=> setRateMode(true)} variant="outlined" sx={{
+                                textTransform: 'none'
+                            }} className={`bg-[#00aabc11]! border-[#00aabc30]! text-sky roboto h-[30px]`}>
+                                Rate
+                            </Button>
+                        }
+
+                    </div>
                 </Card>
                 <Card className={`px-5 py-6! border-0! shadow-sm! mt-5`}>
                     <h4 className={`roboto-medium text-[15px]`}>REQUIRED SKILLS</h4>
@@ -734,10 +791,14 @@ function Content({mission, setMission, loading, applications, setApplications}) 
 
     const [activeTab, setActiveTab] = useState('overview');
     const [editMode, setEditMode] = useState(false);
+    const [rateMode, setRateMode] = useState(false);
 
     return (
         <div className="pt-10">
-            <Header loading={loading} editMode={editMode} setEditMode={setEditMode} mission={mission} activeTab={activeTab} setActiveTab={setActiveTab} />
+            {
+                !rateMode &&
+                <Header loading={loading} editMode={editMode} setEditMode={setEditMode} mission={mission} activeTab={activeTab} setActiveTab={setActiveTab} />
+            }
             <div className={`pt-5`}>
             {
                 loading &&
@@ -746,15 +807,19 @@ function Content({mission, setMission, loading, applications, setApplications}) 
                 </div>
             }
             {
-                !loading && activeTab === 'overview' && mission.status === 'not_started' &&
+                !loading && !rateMode && activeTab === 'overview' && mission.status === 'not_started' &&
                 <MissionContent setEditMode={setEditMode} activeTab={activeTab} mission={mission} setMission={setMission} editMode={editMode} />
             }
             {
-                !loading && activeTab === 'applications' && <Applications setApplications={setApplications} applications={applications} />
+                !loading && !rateMode && activeTab === 'applications' && <Applications setApplications={setApplications} applications={applications} />
             }
             {
-                !loading && mission && mission.status !== 'not_started' &&
-                <MissionProgress mission={mission} />
+                !loading && !rateMode && mission && mission.status !== 'not_started' &&
+                <MissionProgress setRateMode={setRateMode} mission={mission} />
+            }
+            {
+                !loading && rateMode &&
+                <MissionRate mission={mission} setMission={setMission} setRateMode={setRateMode} />
             }
             </div>
         </div>
@@ -772,6 +837,7 @@ function MissionDetails() {
     const fetchMissionDetails = ()=>{
         Connection.get(`company/missions/${id}/`, (data)=>{
             setMission(data.mission);
+            console.log(data.mission);
             setApplications(data.applications);
         }, (error)=>{
             setLoading(false);

@@ -5,7 +5,7 @@ import { FaStar, FaFilter } from "react-icons/fa";
 import { Chip } from "@mui/joy";
 import Connection from "../../services/Connection";
 import { requestFailureHandler } from "../../lib/utils";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const MEDIA_API = import.meta.env.VITE_MEDIA_API;
 
@@ -172,22 +172,24 @@ function Content({data, loading}) {
                                     </div>
                                     {
                                         data.current_missions.map((mission, index)=>(
-                                            <div key={index} className={`h-[55px] px-4 grid grid-cols-12 border-b border-gray-200`}>
-                                                <div className={`h-full text-[15px] col-span-4 flex items-center roboto`}>
-                                                    {mission.mission.name}
+                                            <Link to={`/student/find-missions/${mission.mission.uuid}`} key={index}>
+                                                <div className={`h-[55px] px-4 grid grid-cols-12 border-b border-gray-200`}>
+                                                    <div className={`h-full text-[15px] col-span-4 flex items-center roboto`}>
+                                                        {mission.mission.name}
+                                                    </div>
+                                                    <div className={`h-full col-span-3 flex items-center roboto-light text-[15px] text-gray-main`}>
+                                                        {mission.company.name}
+                                                    </div>
+                                                    <div className={`h-full col-span-3 flex items-center roboto text-[15px] text-gray-main`}>
+                                                        {mission.mission.deadline}
+                                                    </div>
+                                                    <div className={`h-full col-span-2 flex items-center roboto`}>
+                                                        <Chip className={`roboto-light text-[12px]! ${statusStyles[mission.mission.status].sx}`}>
+                                                            {statusStyles[mission.mission.status].text}
+                                                        </Chip>
+                                                    </div>
                                                 </div>
-                                                <div className={`h-full col-span-3 flex items-center roboto-light text-[15px] text-gray-main`}>
-                                                    {mission.company.name}
-                                                </div>
-                                                <div className={`h-full col-span-3 flex items-center roboto text-[15px] text-gray-main`}>
-                                                    {mission.mission.deadline}
-                                                </div>
-                                                <div className={`h-full col-span-2 flex items-center roboto`}>
-                                                    <Chip className={`roboto-light text-[12px]! ${statusStyles[mission.mission.status].sx}`}>
-                                                        {statusStyles[mission.mission.status].text}
-                                                    </Chip>
-                                                </div>
-                                            </div>
+                                            </Link>
                                         ))
                                     }
                                 </div>

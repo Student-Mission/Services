@@ -175,6 +175,29 @@ const alertTranslator = {
             alert.linkText = "Voir la candidature";
         }
         return alert;
+    },
+    MISSION_SUBMITTED: (data, language='en')=>{
+        const {mission_uuid} = data.context_data;
+
+        let alert = {
+            title: '',
+            message: ``,
+            link: mission_uuid ? `/company/missions/${mission_uuid}`: '/company/missions',
+            style: {
+                icon: BsStack,
+                class: 'text-green-600 border-green-600/30 bg-green-400/30'
+            }
+        }
+        if (language === 'en') {
+            alert.title = 'Submission received';
+            alert.message = 'A student has submitted a project for your mission. Review the submission on the mission page.';
+            alert.linkText = 'View submission';
+        } else if (language === 'fr') {
+            alert.title = 'Rendu soumis';
+            alert.message = "Un étudiant a soumis le rendu pour votre mission. Consultez la soumission sur la page de la mission.";
+            alert.linkText = 'Voir le rendu';
+        }
+        return alert;
     }
 }
 

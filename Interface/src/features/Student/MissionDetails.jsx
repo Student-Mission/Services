@@ -1,7 +1,7 @@
 import { Button, CircularProgress, Container } from "@mui/material";
 import StudentNavigation from "../../components/layout/StudentNavigation"
-import { Chip } from "@mui/joy";
-import { FaArrowRight, FaCalendar } from "react-icons/fa";
+import { Chip, LinearProgress } from "@mui/joy";
+import { FaArrowRight, FaCalendar, FaExternalLinkAlt } from "react-icons/fa";
 import { FaBookmark } from "react-icons/fa6";
 import { IoMdShare } from "react-icons/io";
 import { Link, useNavigate, useParams } from "react-router-dom";
@@ -10,6 +10,8 @@ import Connection from "../../services/Connection";
 import { requestFailureHandler } from "../../lib/utils";
 import { CiCircleCheck } from "react-icons/ci";
 import ErrorBox from "../../components/ui/ErrorBox";
+import { GoDotFill } from "react-icons/go";
+
 
 const MEDIA_API = import.meta.env.VITE_MEDIA_API;
 
@@ -36,7 +38,7 @@ const MEDIA_API = import.meta.env.VITE_MEDIA_API;
 //     }
 // }
 
-function Content({mission}) {
+function Content({mission, setMission}) {
 
     const levelsTheme = {
         Rookie: 'bg-amber-700/30! text-amber-700!',
@@ -85,7 +87,69 @@ function Content({mission}) {
         }, setApplyLoading, true)
     }
 
+    // Progress management
+    const computeProgress = ()=>{
+        const deadline = new Date(mission.deadline).getTime();
+        const start_date = new Date(mission.start_date).getTime();
+        const now = new Date().getTime();
+        const duration = deadline - start_date;
+
+        if (now < start_date)
+            return 0;
+
+        let elapsed = now - start_date;
+        if (elapsed > duration) {
+            elapsed = duration;
+        }
+        // 100% -> duration
+        // percent -> elapsed
+        const progressPercent = (100 * elapsed) / duration;
+        return Math.round(progressPercent);
+        // return elapsed;
+    }
+
+    const missionStatusLabel = {
+        in_progress: 'In Progress',
+        waiting_for_rate: 'Waiting for Rate',
+        completed: 'Completed'
+    }
+    const progressBrief = "Project timeline progress";
+    const renderLinkBrief = "Submit your work using the link below";
+
     // Submit management
+    const [submitted, setSubmitted] = useState(mission.status === 'waiting_for_rate');
+    const [submitLoading, setSubmitLoading] = useState(false);
+    const [submitRequestError, setSubmitRequestError] = useState(null);
+
+    const submitMission = ()=>{
+        if (submitLoading)
+            return;
+        setSubmitRequestError(null);
+        Connection.post(`student/missions/${id}/submit/`, {}, (data)=>{
+            setSubmitted(true);
+            setMission(data.mission);
+        }, (error)=>{
+            setSubmitLoading(false);
+            requestFailureHandler(error, setSubmitRequestError, navigate, null, (status, data)=>{
+                if (code === 403) {
+                    setSubmitRequestError({
+                        fr: "Vous n'êtes pas autorisé à soummettre actuellement",
+                        en: "You are not allowed to submit now"
+                    })
+                } else if (code === 400) {
+                    setSubmitRequestError({
+                        fr: "Cette mission est déjà rendue",
+                        en: "Mission already submitted"
+                    })
+                } else {
+                    setSubmitRequestError({
+                        fr: "Erreur inattendue, veuillez réessayer",
+                        en: "Unexpected error, try again"
+                    })
+                }
+            })
+        }, setSubmitLoading, true)
+    }
 
     return (
         <div className={`grid grid-cols-12 pt-[130px] gap-6`}>
@@ -104,21 +168,48 @@ function Content({mission}) {
                             <h5 className={`text-gray-500 roboto text-[17px]`}>{mission.company.name}</h5>
                         </div>
                     </div>
-                    <div className={`flex flex-wrap gap-3 mt-4`}>
-                        <div className={`p-3 py-2 w-40 bg-gray-50 rounded-md flex items-center gap-3`}>
-                            <FaCalendar className={`text-blue-500 text-[18px]`}/>
-                            <div className={``}>
-                                <h6 className={`roboto-light text-[12px]`}>Start date</h6>
-                                <p className={`roboto-medium text-[13px] mt-1`}>{mission.start_date}</p>
+                    <div className={`grid grid-cols-12 gap-3 mt-4`}>
+                        <div className="col-span-3">
+                            <div className={`p-3 py-2 bg-gray-50 rounded-md flex items-center gap-3`}>
+                                <FaCalendar className={`text-blue-500 text-[18px]`}/>
+                                <div className={``}>
+                                    <h6 className={`roboto-light text-[12px]`}>Start date</h6>
+                                    <p className={`roboto-medium text-[13px] mt-1`}>{mission.start_date}</p>
+                                </div>
                             </div>
                         </div>
-                        <div className={`p-3 py-2 w-40 bg-gray-50 rounded-md flex items-center gap-3`}>
-                            <FaCalendar className={`text-blue-500 text-[18px]`}/>
-                            <div className={``}>
-                                <h6 className={`roboto-light text-[12px]`}>Deadline</h6>
-                                <p className={`roboto-medium text-[13px] mt-1`}>{mission.deadline}</p>
+                        <div className="col-span-3">
+                            <div className={`p-3 py-2 bg-gray-50 rounded-md flex items-center gap-3`}>
+                                <FaCalendar className={`text-blue-500 text-[18px]`}/>
+                                <div className={``}>
+                                    <h6 className={`roboto-light text-[12px]`}>Deadline</h6>
+                                    <p className={`roboto-medium text-[13px] mt-1`}>{mission.deadline}</p>
+                                </div>
                             </div>
                         </div>
+                        {
+                            mission.status !== 'not_started' &&
+                            <div className="col-span-6">
+                                <div className={`flex-1 flex justify-end px-5`}>
+                                    <div className="w-full">
+                                        <strong className={`font-normal roboto-medium text-[15px] text-gray-500`}>CURRENT PROGRESS</strong>
+                                        <div className={`flex mt-3 justify-between items-center`}>
+                                            <p className={`text-[14px] text-black roboto`}>{progressBrief}</p>
+                                            <div className={`flex items-center gap-1`}>
+                                                <div className={`rounded-full p-0 bg-green-300/50`}>
+                                                    <GoDotFill className={`text-green text-[20px]`} />
+                                                </div>
+                                                <h6 className={`roboto-medium text-[15px]`}>{computeProgress()}%</h6>
+                                            </div>
+                                        </div>
+                                        <LinearProgress determinate value={computeProgress()} className={`h-[15px] mt-1 rounded-full!`} sx={{
+                                            '--LinearProgress-progressThickness': '13px',
+                                            '--LinearProgress-radius': '999px',
+                                        }} />
+                                    </div>
+                                </div>
+                            </div>
+                        }
                     </div>
                 </div>
                 <div className={`mt-5 w-full bg-white! shadow-2xs border border-gray-200 rounded-2xl p-5 py-7`}>
@@ -150,7 +241,7 @@ function Content({mission}) {
                         </>
                     }
                     {
-                        applied &&
+                        applied && mission.extras.application_status && mission.extras.application_status === 'pending' &&
                         <Button sx={{
                             textTransform: 'none'
                         }} variant='outlined' disabled className={`border-green text-green gap-2 roboto h-[38px] w-full`}>
@@ -158,20 +249,64 @@ function Content({mission}) {
                             Already applied
                         </Button>
                     }
-                    <div className={`mt-3 gap-4 flex justify-around roboto items-center`}>
-                        <Button variant='outlined' sx={{
+                    {
+                        applied && mission.status === 'in_progress' &&
+                        <Button sx={{
                             textTransform: 'none'
-                        }} className={`gap-2 w-[50%] border-gray-200! text-gray-500!`}>
-                            <FaBookmark className={``}/>
-                            Save Mission
+                        }} variant='outlined' disabled className={`border-green text-green gap-2 roboto h-[38px] w-full bg-green-600/10! border-[#00aabc30]!`}>
+                            <div className={`flex items-center gap-3`}>
+                                <div className={`rounded-full bg-[#00aabc40]`}>
+                                    <GoDotFill className={`text-[#00aabc]`}/>
+                                </div>
+                                <p className={`roboto text-[#00aabc]`}>{missionStatusLabel[mission.status]}</p>
+                            </div>
                         </Button>
-                        <Button variant='outlined' sx={{
+                    }
+                    {
+                        !submitted && mission.extras.application_status && mission.extras.application_status === 'confirmed' &&
+                        <>
+                            <Button onClick={submitMission} disabled={submitLoading} sx={{
+                                textTransform: 'none'
+                            }} className={`w-full h-[38px] text-white! bg-blue-main roboto-medium mt-3!`}>
+                                {
+                                    submitLoading ?
+                                    <CircularProgress size={20} sx={{
+                                        color: 'white'
+                                    }} />:
+                                    <>Submit</>
+                                }
+                            </Button>
+                            {
+                                submitRequestError && <ErrorBox content={submitRequestError} />
+                            }
+                        </>
+                    }
+                    {
+                        submitted && mission.extras.application_status === 'confirmed' &&
+                        <Button sx={{
                             textTransform: 'none'
-                        }} className={`gap-2 w-[50%] border-gray-200! text-gray-500! roboto`}>
-                            <IoMdShare className={``}/>
-                            Share
+                        }} variant='outlined' disabled className={`border-green text-green gap-2 mt-3 roboto h-[38px] w-full`}>
+                            <CiCircleCheck className={`text-[22px]`}/>
+                            Already submitted
                         </Button>
-                    </div>
+                    }
+                    {
+                        mission.status === 'not_started' &&
+                        <div className={`mt-3 gap-4 flex justify-around roboto items-center`}>
+                            <Button variant='outlined' sx={{
+                                textTransform: 'none'
+                            }} className={`gap-2 w-[50%] border-gray-200! text-gray-500!`}>
+                                <FaBookmark className={``}/>
+                                Save Mission
+                            </Button>
+                            <Button variant='outlined' sx={{
+                                textTransform: 'none'
+                            }} className={`gap-2 w-[50%] border-gray-200! text-gray-500! roboto`}>
+                                <IoMdShare className={``}/>
+                                Share
+                            </Button>
+                        </div>
+                    }
                 </div>
                 <div className={`w-full mt-4 p-5 py-7 bg-white shadow-2xs rounded-2xl border border-gray-200`}>
                     <h5 className={`roboto-medium`}>Required Skills</h5>
@@ -185,6 +320,19 @@ function Content({mission}) {
                         }
                     </div>
                 </div>
+                {
+                    mission.extras && mission.extras.render_link &&
+                    <div className={`w-full mt-4 p-5 py-7 bg-white shadow-2xs rounded-2xl border border-gray-200`}>
+                        <h5 className={`roboto-medium text-[22px]`}>Render link</h5>
+                        <p className={`mt-4 text-wrap roboto-light text-[14px] text-gray-500`}>{renderLinkBrief}</p>
+                        <a target='_blank' href={mission.extras.render_link} className={`flex py-2 px-3 bg-gray-100 rounded-2xl group text-gray-500 items-center gap-2 mt-3`}>
+                            <span className={`max-w-[90%] group-hover:underline roboto line-clamp-1 text-ellipsis text-[14px]`}>{mission.extras.render_link}</span>
+                            <div className={`flex-1 flex justify-end`}>
+                                <FaExternalLinkAlt className={`text-[16px]`}/>
+                            </div>
+                        </a>
+                    </div>
+                }
                 <div className={`w-full mt-4 p-5 py-7 shadow-2xs bg-white! rounded-2xl border border-gray-200`}>
                     <h5 className={`roboto-medium text-[22px]`}>About {mission.company.name}</h5>
                     <pre className={`text-wrap mt-4 roboto-light text-[14px] text-gray-500 text-justify`}>
@@ -211,6 +359,7 @@ function MissionDetails() {
     const fetchData = ()=>{
         Connection.get(`student/missions/${id}/`, (data)=>{
             setMission(data.mission);
+            // console.log(data.mission);
             console.log(`Can apply ${data.mission.company.picture}`)
         }, (error)=>{
             requestFailureHandler(error, setRequestError, navigate, null, (code, data)=>{
@@ -243,7 +392,7 @@ function MissionDetails() {
                 }
                 {
                     !loading && !requestError &&
-                    <Content mission={mission} />
+                    <Content mission={mission} setMission={setMission} />
                 }
                 {
                     !loading && requestError &&
