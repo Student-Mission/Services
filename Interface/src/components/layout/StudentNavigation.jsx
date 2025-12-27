@@ -1,4 +1,4 @@
-import { Avatar, CircularProgress, Container, IconButton } from "@mui/material";
+import { Avatar, Badge, CircularProgress, Container, IconButton } from "@mui/material";
 import logo from "../../assets/images/stm.png";
 import { Link } from "react-router-dom";
 import { IoSettingsOutline } from "react-icons/io5";
@@ -28,7 +28,10 @@ function StudentNavigation() {
             path: '/student/learn'
         }
     ]
-    const {profile, mainLoading} = useContext(GlobalContext);
+    const {profile, mainLoading, alerts} = useContext(GlobalContext);
+    const getNewAlerts = (_alerts=[])=>{
+        return _alerts.filter((v)=>v.new).length;
+    }
 
     return (
         <div className={`fixed bg-white z-30 top-0 left-0 h-16 xl:h-20 w-full border-b border-gray-200`}>
@@ -52,7 +55,9 @@ function StudentNavigation() {
                         <IoSettingsOutline className={`text-gray-main text-2xl`}/>
                     </IconButton>
                     <Link to={'/student/alerts'}>
-                        <GoBell className={`text-2xl text-gray-main`}/>
+                        <Badge badgeContent={getNewAlerts(alerts)} color='error'>
+                            <GoBell className={`text-2xl text-gray-main`}/>
+                        </Badge>
                     </Link>
                     {
                         mainLoading ?

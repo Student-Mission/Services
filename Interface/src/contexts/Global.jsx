@@ -1,8 +1,10 @@
-import { createContext, useEffect, useState } from "react";
+import { createContext, useEffect, useRef, useState } from "react";
 export const GlobalContext = createContext();
 import Connection from "../services/Connection";
 import { useNavigate } from "react-router-dom";
 import useCache from "../hooks/useCache";
+
+const BACKEND_API = import.meta.env.VITE_API_URL;
 
 export const GlobalProvider = ({children})=>{
 
@@ -17,6 +19,7 @@ export const GlobalProvider = ({children})=>{
         picture: 'none'
     }) // User standard profile
     const [logged, setLogged] = useState(false);
+    const [alerts, setAlerts] = useState([]);
     const navigate = useNavigate();
 
 
@@ -25,6 +28,8 @@ export const GlobalProvider = ({children})=>{
             setLogged(true);
             setProfile(data.profile);
             setSkills(data.available_skills);
+            setAlerts(data.alerts);
+            // initializeWebSocket();
         }, (error)=>{
             setMainLoading(false);
             if (error.response) {
@@ -37,17 +42,124 @@ export const GlobalProvider = ({children})=>{
             }
         }, setMainLoading, true);
     }
+    const [access, setAccess] = useState(localStorage.getItem('access'));
+    const [socket, setSocket] = useState(null);
+    const socketRef = useRef(null);
+    const connectingRef = useRef(null);
 
     useEffect(()=>{
         checkAuth();
+        const onStorageChange = (e)=>{
+            if (e.key === 'access') {
+                setAccess(e.newValue);
+            }
+        }
+        window.addEventListener("storage", onStorageChange);
+        return ()=> {
+            window.removeEventListener('storage', onStorageChange);
+            if (socketRef.current) {
+                try {
+                    socketRef.current.close();
+                } catch {}
+                socketRef.current = null;
+            }
+        }
     }, [])
+    
+    useEffect(()=>{
+        if (!access) return;
+        initializeWebSocket(access)
+    
+    }, [access])
+
+    // useEffect(()=>{
+    //     let newAlerts = [];
+    //     alerts.map((alert)=>{
+    //         if (newAlerts.findIndex((value)=>value.id === alert.id) != -1)
+    //             return;
+    //         newAlerts.push(alert);
+    //     })
+    //     setAlerts(newAlerts);
+    // }, [alerts])
+
+    const handleAlertReception = (event)=>{
+        // alert("New alert");
+        // const data = event.data.data;
+        let payload = null;
+        try {
+            payload = JSON.parse(event.data).data;
+        } catch (err) {
+            console.error('Failed to parse websocket message', err)
+            return;
+        }
+        let newAlert = {
+            ...payload,
+            ['new']: true
+        };
+        let oldAlerts = alerts;
+        oldAlerts.push(newAlert);
+        setAlerts(oldAlerts);
+    }
+    
+    const initializeWebSocket = (token)=>{
+       if (!token)
+            return;
+        if (connectingRef.current)
+            return;
+
+        // Avoid opening if an open socket already exists
+        if (socketRef.current && socket.current.readyState === WebSocket.OPEN)
+            return;
+
+        connectingRef.current = true;
+
+        Connection.get('ws-auth/auth_for_ws_connection/', (data)=>{
+            const uuid = data.uuid;
+            const WS_URL = BACKEND_API.replace('http://', 'ws://') + `ws/alerts/?uuid=` + encodeURIComponent(uuid);
+            
+            // Close previous socket
+            if (socketRef.current) {
+                try {
+                    socket.current.close();
+                } catch {}
+                socketRef.current = null;
+            }
+
+            const ws = new WebSocket(WS_URL);
+            
+            ws.onopen = ()=> {
+                console.log("Socket open")
+                connectingRef.current = false;
+                socketRef.current = ws;
+            };
+            ws.onclose = ()=> {
+                console.log("Socket gracefully closed");
+                if (socketRef.current === ws)
+                    socketRef.current = null;
+            }
+            ws.onerror = (err)=>{
+                console.warn("Websocket error", err);
+            }
+            ws.onmessage = handleAlertReception;
+            setSocket(ws);
+        }, (error)=>{
+            connectingRef.current = false;
+            console.log("Failed to establish websocket connection");
+            // console.log(error);
+            // alert("Websocket error");
+        }, null, true)
+        
+    }
+
+    // Websockets
 
     return (
         <GlobalContext.Provider value={{
             navExtended, setNavExtended,
             profile, setProfile,
             mainLoading, setMainLoading,
-            logged, setLogged, skills, setSkills, companyMissions, setCompanyMissions
+            logged, setLogged, skills, setSkills, companyMissions, setCompanyMissions,
+            alerts, setAlerts, initializeWebSocket
         }} >
             {children}
         </GlobalContext.Provider>

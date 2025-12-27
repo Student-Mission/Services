@@ -136,7 +136,7 @@ class Connection {
         })
         .catch((error)=>{
             // failureHandler?.(error)
-            console.error(error);
+            // console.error(error);
             if (error.response.status === 401 && secure) {
                 this.refresh(setLoading, newHandler, failureHandler)
             } else {

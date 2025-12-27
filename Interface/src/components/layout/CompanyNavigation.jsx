@@ -1,7 +1,7 @@
 import logo from "../../assets/images/stm.png";
 import { Input } from "@mui/joy";
 import { CiSearch } from "react-icons/ci";
-import { Avatar, Drawer, IconButton, Button, CircularProgress } from "@mui/material";
+import { Avatar, Drawer, IconButton, Button, CircularProgress, Badge } from "@mui/material";
 import { FiBell } from "react-icons/fi";
 import { GoSidebarCollapse, GoSidebarExpand } from "react-icons/go";
 import { useEffect, useState } from "react";
@@ -115,7 +115,11 @@ function Header() {
     //     picture: 'none'
     // }
 
-    const {mainLoading, profile} = useContext(GlobalContext);
+    const {mainLoading, profile, alerts} = useContext(GlobalContext);
+    
+    const getNewAlerts = (_alerts=[])=>{
+        return _alerts.filter((v)=>v.new).length;
+    }
 
     return (
         <div className={`fixed z-50 bg-white top-0 left-0 w-full h-16 md:h-20 lg:ps-4 lg:pe-4 shadow-2xs border border-gray-200`}>
@@ -133,9 +137,13 @@ function Header() {
                     <IconButton className={`lg:hidden!`}>
                         <CiSearch className={`text-[29px]`}/>
                     </IconButton>
-                    <div className={`flex items-center cursor-pointer justify-center h-10 w-11 group rounded-lg bg-gray-100 transition duration-200 ease-in-out hover:bg-gray-200`}>
-                        <FiBell className={`text-[21px] text-gray-main group-hover:text-gray-900!`}/>
-                    </div>
+                    <Link to={`/company/alerts`} className="">
+                        <Badge badgeContent={getNewAlerts(alerts)} color='error' className={`flex items-center cursor-pointer justify-center h-10 w-11 group rounded-lg bg-gray-100 transition duration-200 ease-in-out hover:bg-gray-200`}>
+                            {/* <div className={`flex items-center cursor-pointer justify-center h-10 w-11 group rounded-lg bg-gray-100 transition duration-200 ease-in-out hover:bg-gray-200`}> */}
+                                    <FiBell className={`text-[21px] text-gray-main group-hover:text-gray-900!`}/>
+                            {/* </div> */}
+                        </Badge>
+                    </Link>
 
                     {
                         mainLoading ?
