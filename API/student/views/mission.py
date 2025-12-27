@@ -7,6 +7,10 @@ from rest_framework.permissions import IsAuthenticated
 from company.models import Mission, Application
 from student.config import LEVELS
 from django.core.exceptions import ValidationError
+from users.models import Notification
+from users.serializers import AlertSerializer
+from users.utils import trigger_notification
+from django.db import transaction
 
 class Dashboard(APIView):
     """
@@ -112,3 +116,45 @@ class ApplyToMission(APIView):
         return Response({
             'msg': 'Successfully applied'
         })
+
+class SubmitMission(APIView):
+    """
+    Docstring for SubmitMission
+    """
+    permission_classes = [IsAuthenticated, IsStudent, IsValidatedStudent]
+
+    def post(self, request: Request, uuid):
+        user = request.user
+        try:
+            mission = Mission.objects.get(uuid=uuid)
+        except (Mission.DoesNotExist, ValidationError):
+            return Response({
+                'detail': "mission not found"
+            }, status=404)
+        if ((not mission.role) or (not mission.role.student) or (not mission.role.student == user.student)):
+            return Response({
+                'detail': 'not allowed'
+            }, status=403)
+        if (mission.status != 'in_progress' and mission.status != 'not_started'):
+            return Response({
+                'detail': 'already submitted'
+            }, status=400)
+        with transaction.atomic():
+            mission.status = 'waiting_for_rate'
+            mission.save()
+            alert = Notification.objects.create(
+                verb_key="MISSION_SUBMITTED",
+                context_data={
+                    'mission_uuid': str(mission.uuid)
+                },
+                user=mission.company.user
+            )
+            mission_data = MissionDetailsSerializer(mission, context={
+                'request': request
+            }).data
+            trigger_notification(str(mission.company.user.uuid), AlertSerializer(alert).data)
+        return Response({
+            'msg': 'mission successfully submitted',
+            'mission': mission_data
+        })
+        

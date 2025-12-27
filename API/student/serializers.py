@@ -50,7 +50,8 @@ class MissionHistoryCardSerializer(serializers.ModelSerializer):
         return {
             'name': mission.name,
             'deadline': mission.deadline,
-            'status': mission.status
+            'status': mission.status,
+            'uuid': str(mission.uuid)
         }
 
 class MissionCompanyDetails(serializers.ModelSerializer):
@@ -63,10 +64,11 @@ class MissionDetailsSerializer(serializers.ModelSerializer):
 
     company = MissionCompanyDetails()
     can_apply = serializers.SerializerMethodField()
+    extras = serializers.SerializerMethodField()
     class Meta:
         model = Mission
-        fields = '__all__'
-        read_only_fields = ['can_apply']
+        exclude = ['render_link']
+        read_only_fields = ['can_apply', 'extras']
     
     def get_can_apply(self, obj: Mission):
         user = self.context.get('request').user
@@ -74,6 +76,21 @@ class MissionDetailsSerializer(serializers.ModelSerializer):
         if (student_applications.exists()):
             return False
         return True
+    
+    def get_extras(self, obj: Mission):
+        user = self.context.get('request').user
+        student_applications = obj.applications.filter(student=user.student)
+        if (not student_applications.exists()):
+            return {}
+        student_application = student_applications.first()
+        extras = {
+            'application_status': student_application.status,
+        }
+        if (student_application.status == 'confirmed'):
+            extras['render_link'] = obj.render_link
+        return extras
+        
+
     
 
 # Profile

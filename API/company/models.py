@@ -69,6 +69,8 @@ class Role(models.Model):
     deadline_rate = models.FloatField(default=0.0)
     communication_rate = models.FloatField(default=0.0)
     rate = models.FloatField(default=0.0)
+    quality_feedback = models.TextField(null=True, blank=True)
+    deadline_feedback = models.TextField(null=True, blank=True)
     feedback = models.TextField(null=True, blank=True)
     student = models.ForeignKey(Student, on_delete=models.SET_NULL, null=True, blank=True, related_name="roles")
     mission = models.OneToOneField(Mission, on_delete=models.CASCADE, related_name="role")

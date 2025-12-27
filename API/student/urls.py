@@ -7,6 +7,7 @@ urlpatterns = [
     path('missions/', mission.Missions.as_view()),
     path('missions/<str:uuid>/', mission.MissionDetails.as_view()),
     path('missions/<str:uuid>/apply/', mission.ApplyToMission.as_view()),
+    path('missions/<str:uuid>/submit/', mission.SubmitMission.as_view()),
 
     # Profile
     path('profile/', profile.Profile.as_view()),

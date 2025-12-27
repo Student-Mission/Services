@@ -163,10 +163,38 @@ class MissionCardSerializer(serializers.ModelSerializer):
         fields = ['uuid', 'name', 'description', 'level', 'skills', 'status', 'start_date']
 
 class MissionDetailsSerializer(serializers.ModelSerializer):
-
+    role = serializers.SerializerMethodField()
     class Meta:
         model = Mission
         exclude = ['company']
+    
+    def get_role(self, obj: Mission):
+        if (not hasattr(obj, 'role')):
+            return None
+        role = obj.role
+        if (not role.student):
+            return {
+                'bio': '',
+                'global_rate': 0,
+                'level': 'Unknown',
+                'skills': [],
+                'user': {
+                    'username': 'Unknown',
+                    'picture': 'none'
+                }
+            }
+        student = role.student
+        return {
+            'bio': student.bio,
+            'global_rate': student.global_rate,
+            'level': student.level,
+            'skills': ApplicationUserSkillsSerializer(student.skills, many=True).data,
+            'user': {
+                'username': student.user.username,
+                'picture': student.user.picture.url if student.user.picture else 'none'
+            }
+        }
+
 
 class ApplicationUserSkillsSerializer(serializers.ModelSerializer):
 
