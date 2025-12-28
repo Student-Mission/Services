@@ -88,6 +88,19 @@ class MissionDetailsSerializer(serializers.ModelSerializer):
         }
         if (student_application.status == 'confirmed'):
             extras['render_link'] = obj.render_link
+        if (student_application.status == 'confirmed' and obj.status == 'completed'):
+            role = obj.role
+            rate = {
+                'quality_rate': role.quality_rate,
+                'deadline_rate': role.deadline_rate,
+            }
+            if (role.quality_feedback):
+                rate['quality_feedback'] = role.quality_feedback
+            if (role.deadline_feedback):
+                rate['deadline_feedback'] = role.deadline_feedback
+            if (role.feedback):
+                rate['feedback'] = role.feedback
+            extras['rate'] = rate
         return extras
         
 

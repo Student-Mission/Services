@@ -255,6 +255,7 @@ class RoleUpdateSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data: dict):
         instance.quality_rate = validated_data.get('quality_rate')
         instance.deadline_rate = validated_data.get('deadline_rate')
+        instance.rate = round((instance.quality_rate + instance.deadline_rate) / 2, 2)
 
         if (validated_data.get('quality_feedback')):
             instance.quality_feedback = validated_data.get('quality_feedback')
@@ -265,6 +266,7 @@ class RoleUpdateSerializer(serializers.ModelSerializer):
         instance.save()
         
         if (instance.student):
+            print('Student found')
             update_student_global_rate(instance.student)
             update_skills_proficiency(instance)
         return instance
