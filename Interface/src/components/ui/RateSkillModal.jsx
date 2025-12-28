@@ -14,6 +14,12 @@ function RateSkillModal({show, onHide, currentSkill}) {
         return (_rate - parseInt(_rate)).toPrecision(2);
     }
 
+    const computeRate = ()=>{
+        if (!currentSkill)
+            return 0.0;
+        return ((currentSkill.mission_rate * 0.7) + (currentSkill.test_rate * 0.3)).toPrecision(2);
+    }
+
     const rate = currentSkill && currentSkill.test_rate ? currentSkill.test_rate: 0;
     console.log(`Rate skill ${rate}`)
     return (
@@ -35,10 +41,10 @@ function RateSkillModal({show, onHide, currentSkill}) {
                 <p className={`roboto mt-4 text-gray-main text-[16px]`}>{brief}</p>
                 <div className={`mt-5`}>
                     <p className={`roboto`}>Current Level</p>
-                    <Rating max={10} readOnly value={rate} toPrecision={0.5}
+                    <Rating max={10} readOnly value={computeRate()} toPrecision={0.5}
                         emptyIcon={<StarIcon style={{ opacity: 0.55 }} fontSize="inherit" />}
                     />
-                    <p className={`font-normal mt- text-[19px] roboto-medium text-sky`}>{rate}/10</p>
+                    <p className={`font-normal mt- text-[19px] roboto-medium text-sky`}>{computeRate()}/10</p>
                 </div>
                 <Button sx={{
                     textTransform: 'none'

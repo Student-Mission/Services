@@ -1,4 +1,4 @@
-import { Button, CircularProgress, Container } from "@mui/material";
+import { Button, CircularProgress, Container, Rating } from "@mui/material";
 import StudentNavigation from "../../components/layout/StudentNavigation"
 import { Chip, LinearProgress } from "@mui/joy";
 import { FaArrowRight, FaCalendar, FaExternalLinkAlt } from "react-icons/fa";
@@ -217,9 +217,40 @@ function Content({mission, setMission}) {
                     <pre className={`text-gray-500 mt-4 roboto-light wrap-break-word! text-wrap`}>{mission.description}</pre>
                 </div>
                 {
-                    mission.extras && mission.extras.render_link &&
+                    mission.extras && mission.extras.rate &&
                     <div className={`mt-5 w-full bg-white! shadow-2xs border border-gray-200 rounded-2xl p-5 py-7`}>
                         <h4 className={`roboto-medium text-[22px]`}>Rate result</h4>
+                        <div className={`mt-7`}>
+                            {
+                                mission.extras.rate.feedback &&
+                                <div className={``}>
+                                    <strong className={`font-normal text-[17px] roboto-medium`}>Overall feedback</strong>
+                                    <p className={`roboto-light text-[15px]`}>
+                                        {mission.extras.rate.feedback}
+                                    </p>
+                                </div>
+                            }
+                            <div className={`mt-4`}>
+                                <strong className={`font-normal text-[17px] roboto-medium`}>Work quality</strong>
+                                <div className={`mt-3`}>
+                                    <Rating max={10} value={mission.extras.rate.quality_rate} readOnly />
+                                    {
+                                        mission.extras.rate.quality_feedback &&
+                                        <p className={`roboto-light text-[15px]`}>{mission.extras.rate.quality_feedback}</p>
+                                    }
+                                </div>
+                            </div>
+                            <div className={`mt-4`}>
+                                <strong className={`font-normal text-[17px] roboto-medium`}>Deadline quality</strong>
+                                <div className={`mt-3`}>
+                                    <Rating max={10} readOnly value={mission.extras.rate.deadline_rate} />
+                                    {
+                                        mission.extras.rate.deadline_feedback &&
+                                        <p className={`roboto-light text-[15px]`}>{mission.extras.rate.deadline_feedback}</p>
+                                    }
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 }
             </div>
