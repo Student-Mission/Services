@@ -11,6 +11,9 @@ from student.utils import make_skill_test, make_file, correct_skill_test, parse_
 from django.core.files.base import ContentFile
 from student.config import TEST_DURATION, TEST_DURATION_OFFSET
 from django.utils import timezone
+from datetime import timedelta
+from django.core.exceptions import ValidationError
+import uuid
 
 class Profile(APIView):
     """
@@ -114,7 +117,7 @@ class MakeTest(APIView):
     def post(self, request: Request):
         user = request.user
         # Validate form
-        serializer = MakeSkillTestSerializer(request.data)
+        serializer = MakeSkillTestSerializer(data=request.data)
         if (not serializer.is_valid()):
             return Response(serializer.errors, status=400)
         skill_name = serializer.validated_data.get('skill_name')
@@ -132,16 +135,18 @@ class MakeTest(APIView):
         if (available_tests.exists()):
             test = available_tests.first()
             return Response({
-                'uuid': test.uuid
+                'uuid': str(test.uuid)
             })
         
         # Make test otherwise
         new_test = make_skill_test(skill_wrapper.skill.name)
         file = ContentFile(new_test.encode('utf-8'))
+        file.name = f'{str(uuid.uuid4())}.json'
         file = make_file(file)
         raw_test = SkillTest.objects.create(
             file=file,
-            skill=skill_wrapper
+            skill=skill_wrapper,
+            expires_at=timezone.now() + timedelta(minutes=20)
         )
         return Response({
             'uuid': raw_test.uuid
@@ -164,7 +169,7 @@ class TestManagement(APIView):
                 uuid=uuid,
                 skill__student=user.student
             )
-        except SkillTest.DoesNotExist:
+        except (SkillTest.DoesNotExist, ValidationError):
             return Response({
                 'detail': 'skill not found'
             }, status=404)
@@ -172,13 +177,15 @@ class TestManagement(APIView):
         # Send test summary if test was made
         if (test.ended == True):
             return Response({
-                'test': SkillTestSummarySerializer(test).data
+                'test': SkillTestSummarySerializer(test, context={
+                    'request': request
+                }).data
             })
         
         # Launch test
-        if (not test.expires_at):
-            test.expires_at = timezone.now() + TEST_DURATION
-            test.save()
+        # if (not test.expires_at):
+        #     test.expires_at = timezone.now() + TEST_DURATION
+        #     test.save()
 
         return Response({
             'msg': 'test successfully launched',
@@ -202,7 +209,7 @@ class TestManagement(APIView):
                 'detail': 'skill not found'
             }, status=404)
         # Check if time is over
-        if (timezone.now() + TEST_DURATION_OFFSET > test.expires_at):
+        if (timezone.now() + timedelta(seconds=TEST_DURATION_OFFSET) > test.expires_at):
             test.rate = 0.0
             test.ended = True
             test.save()

@@ -274,9 +274,24 @@ class MakeSkillTestSerializer(serializers.Serializer):
 class SkillTestSummarySerializer(serializers.ModelSerializer):
 
     skill = serializers.SerializerMethodField()
+    extras = serializers.SerializerMethodField()
     class Meta:
         model = SkillTest
-        fields = ['rate', 'ended', 'created_at', 'updated_at', 'skill']
+        fields = ['rate', 'ended', 'created_at', 'updated_at', 'skill', 'extras']
+        read_only_fields = ['extras']
+    def get_extras(self, obj: SkillTest):
+        skill = obj.skill
+        user = self.context.get('request').user
+        student = user.student
+        based_missions = student.roles.filter(mission__skills__in=[skill.skill.name]).count()
+
+        return {
+            'based_missions': based_missions,
+            'success_percent': obj.rate * 10,
+            'success_responses': obj.rate,
+            'total_responses': 10,
+            'level': student.level
+        }
     
     def get_skill(self, obj: SkillTest):
         return {

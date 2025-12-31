@@ -1,0 +1,94 @@
+{
+  "questions": [
+    {
+      "title": "Quelle est la syntaxe correcte pour déclarer une variable entière en C++ ?",
+      "choices": [
+        {"text": "int x;", "is_correct": true},
+        {"text": "integer x;", "is_correct": false},
+        {"text": "var x;", "is_correct": false},
+        {"text": "x int;", "is_correct": false}
+      ]
+    },
+    {
+      "title": "Qu'est-ce qu'une référence en C++ ?",
+      "choices": [
+        {"text": "Un pointeur constant.", "is_correct": false},
+        {"text": "Un alias pour une variable existante.", "is_correct": true},
+        {"text": "Un objet pouvant contenir n'importe quel type de donnée.", "is_correct": false},
+        {"text": "Un type de données primitif.", "is_correct": false}
+      ]
+    },
+    {
+      "title": "Quelle est la différence entre 'new' et 'malloc' en C++ ?",
+      "choices": [
+        {"text": "new est utilisé pour les tableaux, malloc pour les objets.", "is_correct": false},
+        {"text": "new appelle le constructeur, malloc non.", "is_correct": true},
+        {"text": "new est utilisé en C, malloc en C++.", "is_correct": false},
+        {"text": "new retourne void*, malloc retourne un pointeur de type spécifique.", "is_correct": false}
+      ]
+    },
+    {
+      "title": "Qu'est-ce qu'un constructeur en C++ ?",
+      "choices": [
+        {"text": "Une méthode spéciale appelée lors de la destruction d'un objet.", "is_correct": false},
+        {"text": "Une méthode utilisée pour convertir un type de données en un autre.", "is_correct": false},
+        {"text": "Une méthode spéciale appelée lors de la création d'un objet.", "is_correct": true},
+        {"text": "Un opérateur de surcharge.", "is_correct": false}
+      ]
+    },
+    {
+      "title": "Quel est l'effet de 'const' lorsqu'il est utilisé avec un pointeur ?",
+      "choices": [
+        {"text": "Le pointeur est constant, mais pas la valeur qu'il pointe.", "is_correct": false},
+        {"text": "La valeur pointée est constante, mais le pointeur peut être modifié.", "is_correct": true},
+        {"text": "Tant le pointeur que la valeur qu'il pointe sont constants.", "is_correct": false},
+        {"text": "Le pointeur peut seulement être utilisé avec des constantes.", "is_correct": false}
+      ]
+    },
+    {
+      "title": "Qu'est-ce qu'un destructeur en C++ ?",
+      "choices": [
+        {"text": "Une méthode spéciale appelée automatiquement lorsqu'un objet est créé.", "is_correct": false},
+        {"text": "Une méthode qui peut être appelée manuellement pour détruire un objet.", "is_correct": false},
+        {"text": "Une méthode spéciale appelée automatiquement lorsqu'un objet sort de portée.", "is_correct": true},
+        {"text": "Un type spécial de constructeur.", "is_correct": false}
+      ]
+    },
+    {
+      "title": "Qu'est-ce que la surcharge d'opérateurs en C++ ?",
+      "choices": [
+        {"text": "La possibilité de redéfinir des opérateurs pour des types de données définis par l'utilisateur.", "is_correct": true},
+        {"text": "La création de plusieurs fonctions avec le même nom mais des signatures différentes.", "is_correct": false},
+        {"text": "La définition de plusieurs constructeurs pour une classe.", "is_correct": false},
+        {"text": "La redéfinition d'une fonction dans une classe dérivée.", "is_correct": false}
+      ]
+    },
+    {
+      "title": "Qu'est-ce qu'une classe abstraite en C++ ?",
+      "choices": [
+        {"text": "Une classe qui ne peut pas être instanciée et est destinée à être dérivée.", "is_correct": true},
+        {"text": "Une classe qui cache ses données membres.", "is_correct": false},
+        {"text": "Une classe qui contient uniquement des méthodes statiques.", "is_correct": false},
+        {"text": "Une classe qui ne peut pas avoir de membres.", "is_correct": false}
+      ]
+    },
+    {
+      "title": "Qu'est-ce qu'une exception en C++ ?",
+      "choices": [
+        {"text": "Un moyen de gérer les erreurs en utilisant des structures de contrôle.", "is_correct": false},
+        {"text": "Un objet lancé pour signaler une erreur.", "is_correct": true},
+        {"text": "Un pointeur vers un objet d'erreur.", "is_correct": false},
+        {"text": "Un type spécial de constructeur.", "is_correct": false}
+      ]
+    },
+    {
+      "title": "Quel est l'objectif de 'try', 'catch' et 'throw' en C++ ?",
+      "choices": [
+        {"text": "Déclarer des variables, gérer les entrées/sorties et répéter des instructions.", "is_correct": false},
+        {"text": "Définir des blocs de code pour la gestion des exceptions.", "is_correct": true},
+        {"text": "Créer des threads, gérer les signaux et effectuer des opérations de réseau.", "is_correct": false},
+        {"text": "Déclarer des pointeurs, surcharger des opérateurs et définir des classes.", "is_correct": false}
+      ]
+    }
+  ]
+}

@@ -59,7 +59,7 @@ def correct_skill_test(response: dict, questions: list[dict])-> float:
 
 def compute_skill_rate(mission_rate, test_rate):
     total = (mission_rate*MISSION_RATE_COEF) + (test_rate*TEST_RATE_COEF)
-    return total / (MISSION_RATE_COEF + TEST_RATE_COEF)
+    return total
 
 def parse_test_file(skill_test: SkillTest):
     if not skill_test.file:

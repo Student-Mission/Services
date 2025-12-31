@@ -1,0 +1,94 @@
+{
+  "questions": [
+    {
+      "title": "Quel est le rôle de la fonction 'main' en C ?",
+      "choices": [
+        {"text": "Déclarer des variables globales", "is_correct": false},
+        {"text": "Définir la fonction principale d'un programme C", "is_correct": true},
+        {"text": "Inclure des bibliothèques", "is_correct": false},
+        {"text": "Déclarer des fonctions", "is_correct": false}
+      ]
+    },
+    {
+      "title": "Quelle est la différence entre 'while' et 'do-while' ?",
+      "choices": [
+        {"text": "La boucle 'while' s'exécute au moins une fois, contrairement à 'do-while'", "is_correct": false},
+        {"text": "'while' s'exécute tant que la condition est vraie, 'do-while' s'exécute jusqu'à ce que la condition soit fausse", "is_correct": false},
+        {"text": "La boucle 'do-while' s'exécute au moins une fois, contrairement à 'while'", "is_correct": true},
+        {"text": "Il n'y a pas de différence", "is_correct": false}
+      ]
+    },
+    {
+      "title": "Qu'est-ce qu'un pointeur en C ?",
+      "choices": [
+        {"text": "Une variable qui contient une valeur", "is_correct": false},
+        {"text": "Une variable qui contient l'adresse d'une autre variable", "is_correct": true},
+        {"text": "Un type de donnée", "is_correct": false},
+        {"text": "Une fonction", "is_correct": false}
+      ]
+    },
+    {
+      "title": "Quel est l'effet de l'opérateur '++' sur une variable ?",
+      "choices": [
+        {"text": "Il soustrait 1 à la variable", "is_correct": false},
+        {"text": "Il ajoute 1 à la variable", "is_correct": true},
+        {"text": "Il multiplie la variable par 2", "is_correct": false},
+        {"text": "Il divise la variable par 2", "is_correct": false}
+      ]
+    },
+    {
+      "title": "Qu'est-ce que '#include' en C ?",
+      "choices": [
+        {"text": "Une directive pour déclarer des variables", "is_correct": false},
+        {"text": "Une directive pour inclure des fichiers d'en-tête", "is_correct": true},
+        {"text": "Une fonction pour afficher du texte", "is_correct": false},
+        {"text": "Une boucle pour répéter des instructions", "is_correct": false}
+      ]
+    },
+    {
+      "title": "Quel est le but de la fonction 'printf' ?",
+      "choices": [
+        {"text": "Lire les entrées utilisateur", "is_correct": false},
+        {"text": "Afficher des messages à l'écran", "is_correct": true},
+        {"text": "Déclarer des variables", "is_correct": false},
+        {"text": "Définir des fonctions", "is_correct": false}
+      ]
+    },
+    {
+      "title": "Quelle est la signification de 'void' en C ?",
+      "choices": [
+        {"text": "Une valeur nulle", "is_correct": false},
+        {"text": "Un type qui indique qu'une fonction ne retourne aucune valeur", "is_correct": true},
+        {"text": "Un mot-clé pour déclarer des variables globales", "is_correct": false},
+        {"text": "Un type de donnée pour les entiers", "is_correct": false}
+      ]
+    },
+    {
+      "title": "Qu'est-ce qu'une structure en C ?",
+      "choices": [
+        {"text": "Un type de donnée pour stocker des nombres", "is_correct": false},
+        {"text": "Un ensemble de variables de même type", "is_correct": false},
+        {"text": "Un ensemble de variables de différents types regroupées sous un même nom", "is_correct": true},
+        {"text": "Une fonction pour manipuler des données", "is_correct": false}
+      ]
+    },
+    {
+      "title": "Quel est l'opérateur utilisé pour affecter une valeur à une variable en C ?",
+      "choices": [
+        {"text": "+", "is_correct": false},
+        {"text": "=", "is_correct": true},
+        {"text": "-", "is_correct": false},
+        {"text": "*", "is_correct": false}
+      ]
+    },
+    {
+      "title": "Qu'est-ce que la récursivité en C ?",
+      "choices": [
+        {"text": "Une boucle qui s'exécute indéfiniment", "is_correct": false},
+        {"text": "Une fonction qui s'appelle elle-même", "is_correct": true},
+        {"text": "Une variable qui change de valeur à chaque itération", "is_correct": false},
+        {"text": "Une fonction qui ne s'exécute jamais", "is_correct": false}
+      ]
+    }
+  ]
+}
