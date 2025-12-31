@@ -16,6 +16,7 @@ export const GlobalProvider = ({children})=>{
         username: '',
         email: '',
         bio: '',
+        user_type: "",
         picture: 'none'
     }) // User standard profile
     const [logged, setLogged] = useState(false);
@@ -85,9 +86,9 @@ export const GlobalProvider = ({children})=>{
             ...payload,
             ['new']: true
         };
-        let oldAlerts = alerts;
-        oldAlerts.push(newAlert);
-        setAlerts(oldAlerts);
+        setAlerts((prev)=>{
+            return [newAlert, ...prev]
+        })
     }
     
     const initializeWebSocket = (token)=>{

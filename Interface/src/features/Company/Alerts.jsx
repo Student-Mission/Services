@@ -98,6 +98,7 @@ function Alerts() {
     }, [])
 
     useEffect(()=>{
+        window.scrollTo({top: 0, behavior: 'smooth'})
         if (mainLoading)
             return;
         setAlerts(alerts.map((alert)=>(

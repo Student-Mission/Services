@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import CompanyNavigation from "../../components/layout/CompanyNavigation";
 import Container from "../../components/layout/Container";
 import { BiSolidOffer } from "react-icons/bi";
@@ -14,6 +14,7 @@ import { GoPlus } from "react-icons/go";
 import Connection from "../../services/Connection";
 import { useNavigate } from "react-router-dom";
 import { requestFailureHandler } from "../../lib/utils";
+import { GlobalContext } from "../../contexts/Global";
 const MEDIA_API = import.meta.env.VITE_MEDIA_API;
 
 const StatusCard = ({data})=>{
@@ -44,10 +45,10 @@ const StatusCard = ({data})=>{
                     </Chip>
                 </div>
                 <div className={`mt-5`}>
-                    <div className={`flex items-center gap-2 border px-3 rounded-full text-[15px] w-44 py-2 roboto border-sky text-sky`}>
+                    {/* <div className={`flex items-center gap-2 border px-3 rounded-full text-[15px] w-44 py-2 roboto border-sky text-sky`}>
                         <CiCircleCheck className={`text-[22px] text-sky`}/>
                         Trusted Company
-                    </div>
+                    </div> */}
                     <Button sx={{
                         textTransform: "none"
                     }} className={`text-sky-dark h-[38px] roboto bg-[#02616b21]! mt-3!`}>
@@ -173,11 +174,11 @@ function Content({data}) {
                     <div className={`p-3 col-span-12 lg:col-span-6 xl:col-span-8 xl:h-[400px] rounded-2xl shadow border border-gray-200`}>
                         <div className={`flex items-center justify-between`}>
                             <h5 className={`roboto text-[19px]`}>Monthly missions published</h5>
-                            <Button sx={{
+                            {/* <Button sx={{
                                 textTransform: 'none'
                             }} className={`bg-blue-main text-white! roboto-medium`}>
                                 Export
-                            </Button>
+                            </Button> */}
                         </div>
                         <Box sx={{
                             width: '100%',
@@ -222,11 +223,11 @@ function Content({data}) {
                     <div className={`p-3 col-span-12 lg:col-span-6 xl:col-span-4 xl:h-[400px] rounded-2xl shadow border border-gray-200`}>
                         <div className={`flex items-center justify-between`}>
                             <h5 className={`text-[19px] roboto`}>Applications rate</h5>
-                            <Button sx={{
+                            {/* <Button sx={{
                                 textTransform: 'none'
                             }} className={`bg-blue-main roboto-medium text-white!`}>
                                 Export
-                            </Button>
+                            </Button> */}
                         </div>
                         <Box sx={{
                             width: '100%',
@@ -259,13 +260,25 @@ function Dashboard() {
     const [data, setData] = useState({});
     const [loading, setLoading] = useState(true);
     const [requestError, setRequestError] = useState(null);
+    const {mainLoading, profile} = useContext(GlobalContext);
     const navigate = useNavigate();
 
     // Handlers
     const fetchData = ()=>{
-        Connection.get('company/dashboard/', (data)=>{
+        // if (mainLoading)
+        //     return;
+        // console.log(profile);
+        // if (profile.user_type !== 'company') {
+        //     const user_type = profile.user_type;
+        //     if (user_type === "student") {
+        //         navigate("/student");
+        //     } else {
+        //         navigate("/");
+        //     }
+        // }
+        Connection.get('company/dashboard', (data)=>{
             setData(data);
-            console.log(MEDIA_API + data.profile.picture);
+            // console.log(MEDIA_API + data.profile.picture);
         }, (error)=>{
             // alert('Error');
             requestFailureHandler(error, setRequestError, navigate);
@@ -276,18 +289,37 @@ function Dashboard() {
         fetchData();
     }, [])
 
+    useEffect(()=>{
+        if (mainLoading)
+            return;
+        if (Object.keys(data) === 0) {
+            fetchData();
+        }
+    }, [mainLoading])
+
 
     return (
         <div className={``}>
             <CompanyNavigation/>
             <Container className="borde mt-16 md:mt-20">
                 {
-                    loading ?
+                    requestError && !loading &&
+                    <div className="h-[200px] flex items-center justify-center">
+                        <strong className="font-normal roboto-semibold text-gray-500">
+                            {requestError.en}
+                        </strong>
+                    </div>
+                }
+                {
+                    loading &&
                     <div className="h-[200px] w-full flex items-center justify-center">
                         <CircularProgress size={23} sx={{
                             color: '#01406c'
                         }} />
-                    </div>:
+                    </div>
+                }
+                {
+                    !loading && !requestError && Object.keys(data).length > 0 &&
                     <Content data={data} />
                 }
             </Container>

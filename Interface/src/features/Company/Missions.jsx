@@ -70,6 +70,7 @@ function Missions() {
     const fetchMissions = ()=>{
         if (companyMissions && companyMissions.length > 0) {
             setMissions(companyMissions);
+            setLoading(false);
             return;
         }
         Connection.get('company/missions/', (data)=>{

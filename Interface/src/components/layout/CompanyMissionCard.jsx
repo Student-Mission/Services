@@ -14,7 +14,6 @@ function CompanyMissionCard({mission}) {
         Master: 'bg-[#00aabc30]! text-[#00aabc]!',
         Senior: 'bg-[#03d69330]! text-[#03d693]!'
     }
-    console.log(mission)
     return (
         <div className={`w-full cursor-pointer transition-colors duration-200 ease-in-out hover:bg-gray-50 rounded-2xl p-4 select-none shadow-2xs border border-gray-200`}>
             <Link to={`/company/missions/${mission.uuid}`}>

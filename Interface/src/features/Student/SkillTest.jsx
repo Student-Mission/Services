@@ -307,7 +307,7 @@ function SkillTest() {
 
     const handleSubmit = ()=>{
         if (requestLoading) return;
-        if (currentQuestion !== 10)
+        if (currentQuestion !== questions.length)
             return;
         setError(null);
         if (currentResponse === -1) {
@@ -389,7 +389,7 @@ function SkillTest() {
                         
                         <div className={`flex items-center justify-end w-full`}>
                             {
-                                currentQuestion < 10 &&
+                                currentQuestion < questions.length &&
                                 <Button onClick={handleNext} sx={{
                                     textTransform: 'none'
                                 }} className={`roboto h-[38px] bg-blue-main text-white! mt-3!`}>
@@ -397,7 +397,7 @@ function SkillTest() {
                                 </Button>
                             }
                             {
-                                currentQuestion === 10 &&
+                                currentQuestion === questions.length &&
                                 <Button onClick={handleSubmit} disabled={requestLoading} sx={{
                                     textTransform: 'none'
                                 }} className={`roboto w-[120px] h-[38px] bg-blue-main text-white! mt-3!`}>

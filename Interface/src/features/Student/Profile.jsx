@@ -15,6 +15,7 @@ import { bioRules, passwordRules, personalDetailsRules, pictureRules, proofRules
 import Validator from "../../lib/validations/validator";
 import AddSkills from "../../components/ui/AddSkills";
 import DocumentInput from "../../components/ui/DocumentInput";
+import { MdCancel } from "react-icons/md";
 
 const MEDIA_API = import.meta.env.VITE_MEDIA_API;
 
@@ -294,6 +295,12 @@ function Content({loading, profile, setProfileData}) {
         }
     }
 
+    const handleLogout = ()=>{
+        localStorage.removeItem('access');
+        localStorage.removeItem("refresh");
+        navigate("/");
+    }
+
 
     return (
         <div className={`w-full grid grid-cols-12 gap-5 pt-[130px] pb-10`}>
@@ -333,6 +340,9 @@ function Content({loading, profile, setProfileData}) {
                                 </>:
                                 <CircularProgress size={18} />
                             }
+                        </Button>
+                        <Button onClick={handleLogout} className="w-full h-[38px] roboto bg-blue-main text-white! mt-3!">
+                            Logout
                         </Button>
                     </div>
                 </div>
@@ -618,6 +628,10 @@ function Content({loading, profile, setProfileData}) {
                                                 {
                                                     history.status === 'in_progress' &&
                                                     <FaClock className={`text-amber-600 text-[20px]`}/>
+                                                }
+                                                {
+                                                    history.status === 'not-validated' &&
+                                                    <MdCancel className="text-red-600 text-[20px]" />
                                                 }
                                                 <div className={``}>
                                                     <strong className={`font-normal text-[17px] roboto text-blue-focus`}>{history.title}</strong>

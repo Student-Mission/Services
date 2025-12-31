@@ -18,6 +18,11 @@ function requestFailureHandler(error, setRequestError, navigate, onBadRequest=nu
                 fr: "Erreur serveur, veuillez réessayer.",
                 en: "Server error, try again."
             })
+        } else {
+            setRequestError({
+                fr: "Erreur inattendue, veuillez réessayer",
+                en: "Unexpected error, try again"
+            })
         }
         customHandler?.(status, error.response.data);
     } else {

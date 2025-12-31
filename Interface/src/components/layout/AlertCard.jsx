@@ -1,15 +1,24 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { MenuItem, Button } from "@mui/material";
 import alertTranslator from "../../lib/alerts";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const AlertCard = ({alert, last=false})=>{
 
     const [focused, setFocused] = useState(false);
     const alertData = alertTranslator[alert.verb_key](alert);
+    const navigate = useNavigate();
+    const buttonRef = useRef(null);
+
+    const handleClick = (e)=>{
+        if (buttonRef.current && buttonRef.current.contains(e.target)) {
+            return;
+        }
+        setFocused(!focused);
+    }
     return (
-        <MenuItem onClick={()=>{
-            setFocused(!focused)
+        <div onClick={()=>{
+            handleClick();
         }} className={`px-4! p-3! w-full! border-s-2! block! border-s-transparent! transition-transform select-none h-[95px]! ${alert.is_read && 'border-s-blue-500! bg-slate-50!'} ${!last && 'border-b! border-b-gray-100!'} ${focused && 'h-[130px]!'}`}>
         {/* <div className={`px-4 p-3 w-full border-s-2 border-s-transparent select-none flex items-center h-[95px] gap-5 ${alert.is_read && 'border-s-blue-500 bg-slate-50'} ${focused && ''} ${!last && 'border-b border-gray-100'}`}> */}
             <div className={`flex items-center gap-5 w-full h-full ${focused && 'h-auto!'}`}>
@@ -24,8 +33,10 @@ const AlertCard = ({alert, last=false})=>{
             {
                 focused && alertData.link &&
                 <div className="flex justify-end max-w- mt-3">
-                    <Link href={alertData.link}>
-                        <Button sx={{
+                    <Link ref={buttonRef} to={alertData.link}>
+                        <Button onClick={()=>{
+                            navigate(alertData.link)
+                        }} sx={{
                             textTransform: 'none'
                         }} className="bg-blue-main text-[14px]! text-white! roboto">
                             {alertData.linkText}
@@ -35,7 +46,7 @@ const AlertCard = ({alert, last=false})=>{
             }
 
         {/* </div> */}
-        </MenuItem>
+        </div>
     )
 }
 
