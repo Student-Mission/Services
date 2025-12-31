@@ -143,10 +143,11 @@ class StudentProfileDisplaySerializer(serializers.ModelSerializer):
     def get_details(self, obj: MissionUser):
         can_add_proof = True
         student = obj.student
-        if (len(student.kycs.all()) == 0):
+        if (len(student.kycs.all()) == 0 or student.kycs.filter(status='not-validated').exists()):
             pass
         elif (student.kycs.filter(status='in_progress').exists()):
             can_add_proof = False
+        
         else:
             student_proofs = student.kycs.filter(status='validated').order_by('-submitted_at')
             last_proof = student_proofs.first()

@@ -113,6 +113,15 @@ class ApplyToMission(APIView):
             student=user.student,
             mission=mission
         )
+        if (mission.company.user):
+            alert = Notification.objects.create(
+                verb_key="NEW_APPLICATION",
+                context_data={
+                    'mission_uuid': str(mission.uuid),
+                },
+                user=mission.company.user
+            )
+            trigger_notification(str(alert.user.uuid), AlertSerializer(alert).data)
         return Response({
             'msg': 'Successfully applied'
         })

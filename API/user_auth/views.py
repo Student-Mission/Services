@@ -41,6 +41,7 @@ class Login(APIView):
         data['profile'] = {
             'username': user.username,
             'email': user.email,
+            'user': user.user_type,
             'picture': user.picture.url if user.picture else 'none'
         }
         data['alerts'] = AlertSerializer(user.alerts, many=True).data
@@ -76,8 +77,8 @@ class Refresh(APIView):
         serializer = TokenRefreshSerializer(data=request.data)
 
         try:
-            serializer.is_valid()
-        except (TokenError, InvalidToken):
+            serializer.is_valid(raise_exception=True)
+        except (TokenError, InvalidToken, Exception):
             return Response({
                 'refresh': 'Invalid or expired token'
             }, status=401)
@@ -131,13 +132,16 @@ class GetUser(APIView):
 
     def get(self, request: Request):
         user = request.user
+        print(user.user_type)
+        
         data = {
             'profile': {
                 'username': user.username,
                 'email': user.email,
+                'user_type': user.user_type,
                 'picture': user.picture.url if user.picture else 'none'
             },
-            'alerts': AlertSerializer(user.alerts, many=True).data,
+            'alerts': AlertSerializer(user.alerts.reverse(), many=True).data,
             'available_skills': SkillListSerializer(Skill.objects.all(), many=True).data
         }
         return Response(data)

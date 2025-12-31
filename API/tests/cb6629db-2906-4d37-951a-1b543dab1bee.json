@@ -1,0 +1,76 @@
+{
+  "questions": [
+    {
+      "title": "Quelle est la méthode principale pour ajouter des données à un composant React ?",
+      "choices": [
+        {"text": "Utiliser la fonction setState()", "is_correct": true},
+        {"text": "Utiliser la fonction props()", "is_correct": false},
+        {"text": "Utiliser la fonction render()", "is_correct": false},
+        {"text": "Utiliser la fonction componentDidMount()", "is_correct": false}
+      ]
+    },
+    {
+      "title": "Quel est le nom du hook React utilisé pour gérer les états dans les composants fonctionnels ?",
+      "choices": [
+        {"text": "useState", "is_correct": true},
+        {"text": "useEffect", "is_correct": false},
+        {"text": "useContext", "is_correct": false},
+        {"text": "useReducer", "is_correct": false}
+      ]
+    },
+    {
+      "title": "Qu'est-ce qu'un 'JSX' dans React ?",
+      "choices": [
+        {"text": "Un langage de templating pour React", "is_correct": true},
+        {"text": "Un framework pour construire des applications React", "is_correct": false},
+        {"text": "Un outil de débogage pour React", "is_correct": false},
+        {"text": "Un langage de programmation pour React", "is_correct": false}
+      ]
+    },
+    {
+      "title": "Quel est l'avantage principal de l'utilisation de composants dans React ?",
+      "choices": [
+        {"text": "Ils permettent de réutiliser du code", "is_correct": true},
+        {"text": "Ils permettent d'écrire moins de code", "is_correct": false},
+        {"text": "Ils permettent d'améliorer les performances", "is_correct": false},
+        {"text": "Ils permettent de gérer les événements", "is_correct": false}
+      ]
+    },
+    {
+      "title": "Qu'est-ce que la 'clé' (key) dans une liste d'éléments React ?",
+      "choices": [
+        {"text": "Un identifiant unique pour chaque élément de la liste", "is_correct": true},
+        {"text": "Un élément obligatoire dans chaque liste", "is_correct": false},
+        {"text": "Un élément facultatif dans certaines conditions", "is_correct": false},
+        {"text": "Un élément utilisé uniquement pour le tri des éléments", "is_correct": false}
+      ]
+    },
+    {
+      "title": "Quel est le cycle de vie d'un composant React dans lequel vous pouvez charger des données depuis une API ?",
+      "choices": [
+        {"text": "componentDidMount()", "is_correct": true},
+        {"text": "componentWillMount()", "is_correct": false},
+        {"text": "componentDidUpdate()", "is_correct": false},
+        {"text": "componentWillUnmount()", "is_correct": false}
+      ]
+    },
+    {
+      "title": "Quelle est la particularité d'un composant 'PureComponent' par rapport à un composant classique ?",
+      "choices": [
+        {"text": "Il implémente automatiquement shouldComponentUpdate() avec une comparaison shallow des props et de l'état", "is_correct": true},
+        {"text": "Il n'a pas de méthode render()", "is_correct": false},
+        {"text": "Il n'a pas de possibilité de gérer les événements", "is_correct": false},
+        {"text": "Il est déprécié et ne doit plus être utilisé", "is_correct": false}
+      ]
+    },
+    {
+      "title": "Comment déclarez-vous généralement un événement dans React ?",
+      "choices": [
+        {"text": "En utilisant la convention camelCase (par exemple, onClick)", "is_correct": true},
+        {"text": "En utilisant la convention kebab-case (par exemple, on-click)", "is_correct": false},
+        {"text": "En utilisant n'importe quelle chaîne de caractères", "is_correct": false},
+        {"text": "En utilisant une fonction directement dans le JSX", "is_correct": false}
+      ]
+    }
+  ]
+}

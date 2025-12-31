@@ -18,6 +18,7 @@ from django.db import transaction
 from users.models import Notification
 from users.serializers import AlertSerializer
 from users.utils import trigger_notification
+# from .models import Application
 
 class Dashboard(APIView):
     permission_classes = [IsAuthenticated, IsCompany]
@@ -119,6 +120,20 @@ class MissionDetails(APIView):
         if (not serializer.is_valid()):
             return Response(serializer.errors, status=400)
         serializer.save()
+        alerts = [
+            Notification(
+                verb_key="MISSION_UPDATED",
+                context_data={
+                    'mission_uuid': str(app.mission.uuid)
+                },
+                user=app.student.user if app.student else None
+            )
+            for app in Application.objects.filter(mission=mission)
+            if app.student
+        ]
+        Notification.objects.bulk_create(alerts)
+        for alert in alerts:
+            trigger_notification(str(alert.user.uuid), AlertSerializer(alert).data)
         return Response({
             'msg': 'successfully updated'
         })
