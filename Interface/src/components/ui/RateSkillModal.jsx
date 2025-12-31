@@ -1,7 +1,12 @@
 import { Modal, ModalClose, Sheet } from "@mui/joy";
-import { Button, Rating } from "@mui/material";
+import { Button, CircularProgress, Rating } from "@mui/material";
 import StarIcon from '@mui/icons-material/Star';
 import { FaArrowRight } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+import ErrorBox from "./ErrorBox";
+import Connection from "../../services/Connection";
+import { requestFailureHandler } from "../../lib/utils";
 
 
 function RateSkillModal({show, onHide, currentSkill}) {
@@ -13,6 +18,9 @@ function RateSkillModal({show, onHide, currentSkill}) {
         if (_rate === 0) return 0.00;
         return (_rate - parseInt(_rate)).toPrecision(2);
     }
+    const navigate = useNavigate();
+    const [loading, setLoading] = useState(false);
+    const [requestError, setRequestError] = useState(null);
 
     const computeRate = ()=>{
         if (!currentSkill)
@@ -21,7 +29,28 @@ function RateSkillModal({show, onHide, currentSkill}) {
     }
 
     const rate = currentSkill && currentSkill.test_rate ? currentSkill.test_rate: 0;
-    console.log(`Rate skill ${rate}`)
+    
+    const handleMakeTest = ()=>{
+        if (loading)
+            return;
+        const form = {
+            skill_name: currentSkill.name
+        }
+        Connection.post("student/profile/skills/make-test/", form, (data)=>{
+            const testID = data.uuid;
+            navigate(`/student/skills/${currentSkill.name}/${testID}`)
+        }, (error)=>{
+            console.log(error);
+            requestFailureHandler(error, setRequestError, navigate, (data)=>{
+                setRequestError({
+                    fr: "Compétence invalide",
+                    en: "Invalid skill"
+                })
+                
+            })
+        }, setLoading, true);
+    }
+    
     return (
         <Modal
             sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}
@@ -46,11 +75,24 @@ function RateSkillModal({show, onHide, currentSkill}) {
                     />
                     <p className={`font-normal mt- text-[19px] roboto-medium text-sky`}>{computeRate()}/10</p>
                 </div>
-                <Button sx={{
+                {
+                    requestError && <ErrorBox content={requestError} />
+                }
+                <Button disabled={loading} onClick={()=>{
+                    handleMakeTest()
+                }} sx={{
                     textTransform: 'none'
                 }} className={`mt-5! h-[38px] w-full bg-blue-main text-white! gap-3! roboto`}>
-                    Start Test (MCQ)
-                    <FaArrowRight className={``}/>
+                    {
+                        loading ?
+                        <CircularProgress size={19} sx={{
+                            color: 'white'
+                        }} />:
+                        <>
+                            Start Test (MCQ)
+                            <FaArrowRight className={``}/>
+                        </>
+                    }
                 </Button>
             </Sheet>
         </Modal>

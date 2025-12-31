@@ -5,6 +5,7 @@ $site-colors: (
     'sky-dark': #02616b,
     'green': #03d693,
     'gray-main': #707070
+    // 'red': #e27171
 );
 
 @each $name, $color in $site-colors {

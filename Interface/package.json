@@ -16,6 +16,7 @@
     "@mui/joy": "^5.0.0-beta.52",
     "@mui/material": "^7.3.5",
     "@mui/x-charts": "^8.18.0",
+    "@mui/x-data-grid": "^8.23.0",
     "@tailwindcss/vite": "^4.1.17",
     "dayjs": "^1.11.19",
     "lucide-react": "^0.553.0",
