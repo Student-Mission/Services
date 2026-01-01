@@ -32,7 +32,7 @@ SECRET_KEY = 'django-insecure-ble*n$!zefaxfdp8b62(&65fi!d5&pvop=hgdpenk^ub%d4z9c
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env("DEBUG", default=False)
 
-ALLOWED_HOSTS = ['https://studentmission.onrender.com']
+ALLOWED_HOSTS = ['studentmission.onrender.com', '.onrender.com']
 
 # Media
 # Media
