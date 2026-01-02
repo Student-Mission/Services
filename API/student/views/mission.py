@@ -121,7 +121,7 @@ class ApplyToMission(APIView):
                 },
                 user=mission.company.user
             )
-            trigger_notification(str(alert.user.uuid), AlertSerializer(alert).data)
+            # trigger_notification(str(alert.user.uuid), AlertSerializer(alert).data)
         return Response({
             'msg': 'Successfully applied'
         })
@@ -161,7 +161,7 @@ class SubmitMission(APIView):
             mission_data = MissionDetailsSerializer(mission, context={
                 'request': request
             }).data
-            trigger_notification(str(mission.company.user.uuid), AlertSerializer(alert).data)
+            # trigger_notification(str(mission.company.user.uuid), AlertSerializer(alert).data)
         return Response({
             'msg': 'mission successfully submitted',
             'mission': mission_data

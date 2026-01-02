@@ -132,8 +132,8 @@ class MissionDetails(APIView):
             if app.student
         ]
         Notification.objects.bulk_create(alerts)
-        for alert in alerts:
-            trigger_notification(str(alert.user.uuid), AlertSerializer(alert).data)
+        # for alert in alerts:
+        #     trigger_notification(str(alert.user.uuid), AlertSerializer(alert).data)
         return Response({
             'msg': 'successfully updated'
         })
@@ -214,7 +214,7 @@ class EditApplication(APIView):
                         context_data=alert_context,
                         user=application.student.user
                     )
-                    trigger_notification(application.student.user.uuid, AlertSerializer(alert).data)
+                    # trigger_notification(application.student.user.uuid, AlertSerializer(alert).data)
             application.save()
         return Response({
             'msg': 'successfully updated',
@@ -257,7 +257,7 @@ class RateMission(APIView):
                     },
                     user=student.user
                 )
-                trigger_notification(str(student.user.uuid), AlertSerializer(alert).data)
+                # trigger_notification(str(student.user.uuid), AlertSerializer(alert).data)
         return Response({
             'msg': "mission successfully rated"
         })
