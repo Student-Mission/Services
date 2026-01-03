@@ -121,7 +121,7 @@ class EditSecurity(APIView):
             context_data={},
             user=request.user
         )
-        # trigger_notification(str(request.user.uuid), AlertSerializer(alert).data)
+        trigger_notification(str(request.user.uuid), AlertSerializer(alert).data)
         return Response({
             'msg': 'security successfully updated'
         })
